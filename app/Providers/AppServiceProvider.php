@@ -24,9 +24,7 @@ class AppServiceProvider extends ServiceProvider
             $imei = $this->extractImei($request);
             $key  = $imei !== null ? "imei:{$imei}" : 'ip:' . $request->ip();
 
-            return [
-                    Limit::perMinute($perMinute)->by($key),
-            ];
+            return [Limit::perMinute($perMinute)->by($key)];
         });
     }
 

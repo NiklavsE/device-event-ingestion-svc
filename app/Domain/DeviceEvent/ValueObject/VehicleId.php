@@ -6,9 +6,9 @@ namespace DeviceEventIngestionService\Domain\DeviceEvent\ValueObject;
 
 use DeviceEventIngestionService\Domain\DeviceEvent\Exception\InvalidValueObjectException;
 
-final class VehicleId
+final readonly class VehicleId
 {
-    private function __construct(private readonly string $value)
+    private function __construct(private string $value)
     {
     }
 

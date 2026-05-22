@@ -6,14 +6,14 @@ namespace DeviceEventIngestionService\Domain\DeviceEvent\ValueObject;
 
 use DeviceEventIngestionService\Domain\DeviceEvent\Exception\InvalidValueObjectException;
 
-final class Media
+final readonly class Media
 {
     private function __construct(
-        private readonly ?int $channel,
-        private readonly string $fileName,
-        private readonly ?int $durationSeconds,
-        private readonly ?string $codec,
-        private readonly ?string $mediaType,
+        private ?int    $channel,
+        private string  $fileName,
+        private ?int    $durationSeconds,
+        private ?string $codec,
+        private ?string $mediaType,
     ) {
     }
 

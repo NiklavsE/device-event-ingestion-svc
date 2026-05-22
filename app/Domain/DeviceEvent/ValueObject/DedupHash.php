@@ -6,9 +6,9 @@ namespace DeviceEventIngestionService\Domain\DeviceEvent\ValueObject;
 
 use DeviceEventIngestionService\Domain\DeviceEvent\Exception\InvalidValueObjectException;
 
-final class DedupHash
+final readonly class DedupHash
 {
-    private function __construct(private readonly string $value)
+    private function __construct(private string $value)
     {
     }
 

@@ -11,7 +11,7 @@ use Illuminate\Support\ServiceProvider;
 
 class EventFactoryServiceProvider extends ServiceProvider
 {
-    private const NORMALIZERS = [CV200EventFactory::class, HowenEventFactory::class];
+    private const array NORMALIZERS = [CV200EventFactory::class, HowenEventFactory::class];
 
     public function register(): void
     {

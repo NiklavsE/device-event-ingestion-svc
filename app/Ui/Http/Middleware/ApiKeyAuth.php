@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class ApiKeyAuth
 {
-    private const ANONYMOUS_ENVIRONMENTS = ['local', 'testing'];
+    private const array ANONYMOUS_ENVIRONMENTS = ['local', 'testing'];
 
     public function handle(Request $request, Closure $next): Response
     {
