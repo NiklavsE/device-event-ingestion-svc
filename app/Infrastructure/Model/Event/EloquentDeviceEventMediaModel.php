@@ -37,9 +37,9 @@ class EloquentDeviceEventMediaModel extends Model
         'duration_seconds' => 'integer',
     ];
 
-    /** @return BelongsTo<EloquentEventModel, $this> */
+    /** @return BelongsTo<EloquentDeviceEventModel, $this> */
     public function event(): BelongsTo
     {
-        return $this->belongsTo(EloquentEventModel::class, 'event_id');
+        return $this->belongsTo(EloquentDeviceEventModel::class, 'event_id');
     }
 }

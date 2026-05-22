@@ -22,7 +22,7 @@ final readonly class HowenEventFactory implements IncomingEventFactoryInterface
     public const string PROTOCOL = 'HOWEN';
 
     /** @var array<string, string> */
-    private const RULES = [
+    private const array RULES = [
         'imei'               => 'required|string|max:32',
         'plate'              => 'required|string|max:64',
         'alarmCode'          => 'required|string|max:32',

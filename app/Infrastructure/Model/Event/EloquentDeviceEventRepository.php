@@ -15,7 +15,6 @@ use DeviceEventIngestionService\Domain\DeviceEvent\ValueObject\EventType;
 use DeviceEventIngestionService\Domain\DeviceEvent\ValueObject\GeoPoint;
 use DeviceEventIngestionService\Domain\DeviceEvent\ValueObject\Media;
 use DeviceEventIngestionService\Domain\DeviceEvent\ValueObject\VehicleId;
-use DeviceEventIngestionService\Infrastructure\Model\Device\EloquentDeviceModel;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 
@@ -24,13 +23,9 @@ final class EloquentDeviceEventRepository implements DeviceEventRepositoryInterf
     public function save(DeviceEvent $event): void
     {
         DB::transaction(function () use ($event): void {
-            $deviceId = EloquentDeviceModel::query()
-                ->where('imei', $event->deviceImei->value())
-                ->value('id');
-
             try {
-                $row = EloquentEventModel::create([
-                    'device_id'           => $deviceId,
+                $row = EloquentDeviceEventModel::create([
+                    'device_id'           => $event->deviceId,
                     'vehicle_external_id' => $event->vehicleId->value(),
                     'protocol'            => $event->protocol,
                     'event_type'          => $event->eventType->value(),
@@ -67,9 +62,14 @@ final class EloquentDeviceEventRepository implements DeviceEventRepositoryInterf
 
     public function ofVehicleQuery(VehicleEventQuery $criteria): array
     {
-        $rows = EloquentEventModel::query()
-            ->with(['media', 'device'])
-            ->where('vehicle_external_id', $criteria->vehicleId->value())
+        // device_imei is the only column ever read off the devices row, so
+        // we JOIN and alias it as a top-level column instead of eager-loading
+        // the full Eloquent relation just to access one field.
+        $rows = EloquentDeviceEventModel::query()
+            ->with(['media'])
+            ->select(['device_events.*', 'devices.imei as device_imei'])
+            ->join('devices', 'devices.id', '=', 'device_events.device_id')
+            ->where('device_events.vehicle_external_id', $criteria->vehicleId->value())
             ->when(
                 $criteria->eventType,
                 fn ($q, EventType $type) => $q->where('event_type', $type->value()),
@@ -79,7 +79,7 @@ final class EloquentDeviceEventRepository implements DeviceEventRepositoryInterf
             ->when($criteria->hasMedia === true, fn ($q) => $q->whereHas('media'))
             ->when($criteria->hasMedia === false, fn ($q) => $q->whereDoesntHave('media'))
             ->orderByDesc('event_timestamp')
-            ->orderByDesc('id')
+            ->orderByDesc('device_events.id')
             ->limit($criteria->limit)
             ->get()
             ->all();
@@ -87,11 +87,11 @@ final class EloquentDeviceEventRepository implements DeviceEventRepositoryInterf
         return array_map($this->toDomain(...), $rows);
     }
 
-    private function toDomain(EloquentEventModel $row): DeviceEvent
+    private function toDomain(EloquentDeviceEventModel $row): DeviceEvent
     {
         return new DeviceEvent(
             $row->protocol,
-            DeviceImei::fromString($row->device->imei),
+            DeviceImei::fromString($row->device_imei),
             VehicleId::fromString($row->vehicle_external_id),
             EventType::fromString($row->event_type),
             EventTimestamp::fromIso8601($row->event_timestamp->format('Y-m-d\TH:i:s\Z')),
@@ -112,6 +112,7 @@ final class EloquentDeviceEventRepository implements DeviceEventRepositoryInterf
                 ),
             DedupHash::fromHex($row->dedup_hash),
             $row->raw_payload,
+            $row->device_id,
             $row->id,
         );
     }

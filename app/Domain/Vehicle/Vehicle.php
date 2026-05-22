@@ -8,15 +8,10 @@ use DeviceEventIngestionService\Domain\DeviceEvent\ValueObject\VehicleId;
 
 final readonly class Vehicle
 {
-    private function __construct(
+    public function __construct(
         private VehicleId $externalId,
         private ?string $label,
     ) {
-    }
-
-    public static function register(VehicleId $externalId, ?string $label = null): self
-    {
-        return new self($externalId, $label);
     }
 
 

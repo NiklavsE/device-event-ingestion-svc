@@ -21,7 +21,7 @@ final readonly class DeviceEventIngestionService
     ) {
     }
 
-    public function execute(DeviceEventIngestionRequest $request): void
+    public function execute(DeviceEventIngestionCommand $request): void
     {
         try {
             $incoming = $this->factories->resolve($request->protocol)->create($request->payload);

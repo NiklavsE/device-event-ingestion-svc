@@ -22,7 +22,7 @@ final readonly class CV200EventFactory implements IncomingEventFactoryInterface
     public const string PROTOCOL = 'CV200';
 
     /** @var array<string, string> */
-    private const RULES = [
+    private const array RULES = [
         'device_imei'             => 'required|string|max:32',
         'vehicle_id'              => 'required|string|max:64',
         'event_id'                => 'required|string|max:128',

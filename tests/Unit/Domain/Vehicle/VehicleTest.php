@@ -12,7 +12,7 @@ class VehicleTest extends TestCase
 {
     public function testRegistersWithExternalIdAndOptionalLabel(): void
     {
-        $vehicle = Vehicle::register(VehicleId::fromString('LV-1234'), 'Demo Truck');
+        $vehicle = new Vehicle(VehicleId::fromString('LV-1234'), 'Demo Truck');
 
         self::assertSame('LV-1234', $vehicle->externalId()->value());
         self::assertSame('Demo Truck', $vehicle->label());
@@ -20,7 +20,7 @@ class VehicleTest extends TestCase
 
     public function testLabelIsOptional(): void
     {
-        $vehicle = Vehicle::register(VehicleId::fromString('LV-1234'));
+        $vehicle = new Vehicle(VehicleId::fromString('LV-1234'), null);
 
         self::assertNull($vehicle->label());
     }

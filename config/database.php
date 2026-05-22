@@ -25,6 +25,13 @@ return [
             'unix_socket' => env('DB_SOCKET', ''),
             'charset' => 'utf8mb4',
             'collation' => 'utf8mb4_unicode_ci',
+            // Force the per-connection session timezone to UTC so MySQL's
+            // TIMESTAMP-column conversions are stable regardless of what
+            // timezone the MySQL server (or its container) was launched in.
+            // PHP's default timezone is independently pinned to UTC via
+            // config/app.php — the two together make all datetime values
+            // round-trip as UTC end-to-end.
+            'timezone' => '+00:00',
             'prefix' => '',
             'prefix_indexes' => true,
             'strict' => true,

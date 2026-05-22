@@ -10,6 +10,11 @@ use Illuminate\Validation\Rule;
 
 class IngestDeviceEventRequest extends FormRequest
 {
+    public function __construct(private readonly IncomingEventFactoryResolver $resolver)
+    {
+        parent::__construct();
+    }
+
     public function authorize(): bool
     {
         return true;
@@ -18,10 +23,8 @@ class IngestDeviceEventRequest extends FormRequest
     /** @return array<string, array<int, mixed>> */
     public function rules(): array
     {
-        $supported = app(IncomingEventFactoryResolver::class)->supported();
-
         return [
-            'protocol' => ['required', 'string', Rule::in($supported)],
+            'protocol' => ['required', 'string', Rule::in($this->resolver->supported())],
         ];
     }
 

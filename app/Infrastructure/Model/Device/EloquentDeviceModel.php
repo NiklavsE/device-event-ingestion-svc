@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace DeviceEventIngestionService\Infrastructure\Model\Device;
 
-use DeviceEventIngestionService\Infrastructure\Model\Event\EloquentEventModel;
+use DeviceEventIngestionService\Infrastructure\Model\Event\EloquentDeviceEventModel;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
@@ -23,19 +23,19 @@ class EloquentDeviceModel extends Model
     protected $table = 'devices';
 
     protected $fillable = [
-                           'imei',
-                           'vehicle_external_id',
-                           'firmware',
-                           'last_seen_at',
+        'imei',
+        'vehicle_external_id',
+        'firmware',
+        'last_seen_at',
     ];
 
     protected $casts = [
         'last_seen_at' => 'datetime',
     ];
 
-    /** @return HasMany<EloquentEventModel, $this> */
+    /** @return HasMany<EloquentDeviceEventModel, $this> */
     public function events(): HasMany
     {
-        return $this->hasMany(EloquentEventModel::class, 'device_id');
+        return $this->hasMany(EloquentDeviceEventModel::class, 'device_id');
     }
 }

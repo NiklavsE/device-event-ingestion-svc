@@ -24,26 +24,36 @@ final class EloquentDeviceRepository implements DeviceRepositoryInterface
             DeviceImei::fromString($row->imei),
             VehicleId::fromString($row->vehicle_external_id),
             $row->last_seen_at?->toDateTimeImmutable(),
+            id: $row->id,
         );
     }
 
     public function save(Device $device): void
     {
-        $row = EloquentDeviceModel::query()->where('imei', $device->imei()->value())->first();
-        if ($row === null) {
-            // First-time persist (e.g., from a commissioning flow). Repository
-            // doesn't infer whether the caller meant insert vs update; it just
-            // writes the current aggregate state.
-            $row = new EloquentDeviceModel(['imei' => $device->imei()->value()]);
-        }
-
-        $row->vehicle_external_id = $device->vehicleId()->value();
-        $row->last_seen_at        = $device->lastSeenAt() === null
+        $lastSeenAt = $device->lastSeenAt() === null
             ? null
             : Carbon::instance($device->lastSeenAt());
 
-        if ($row->isDirty()) {
-            $row->save();
+        if ($device->id() === null) {
+            // First-time persist (commissioning flow). The aggregate carries no
+            // surrogate yet, so we insert and let MySQL assign one.
+            EloquentDeviceModel::create([
+                'imei'                => $device->imei()->value(),
+                'vehicle_external_id' => $device->vehicleId()->value(),
+                'last_seen_at'        => $lastSeenAt,
+            ]);
+
+            return;
         }
+
+        // Direct UPDATE by primary key — no SELECT round-trip. The cost of
+        // skipping isDirty() is one redundant UPDATE per ingestion that
+        // didn't advance last_seen_at (older-than-current events only).
+        EloquentDeviceModel::query()
+            ->whereKey($device->id())
+            ->update([
+                'vehicle_external_id' => $device->vehicleId()->value(),
+                'last_seen_at'        => $lastSeenAt,
+            ]);
     }
 }

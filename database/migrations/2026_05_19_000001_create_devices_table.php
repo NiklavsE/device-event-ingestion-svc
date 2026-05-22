@@ -22,6 +22,9 @@ return new class extends Migration {
             $table->timestamps();
 
             $table->index('vehicle_external_id', 'idx_devices_vehicle');
+            $table->foreign('vehicle_external_id')
+                ->references('external_id')->on('vehicles')
+                ->restrictOnDelete();
         });
     }
 

@@ -27,8 +27,9 @@ use Illuminate\Support\Carbon;
  * @property Carbon $updated_at
  * @property-read EloquentDeviceModel|null $device
  * @property-read EloquentDeviceEventMediaModel|null $media
+ * @property-read string|null $device_imei  JOIN-projected from devices.imei on the read path; null when fetched outside ofVehicleQuery().
  */
-class EloquentEventModel extends Model
+class EloquentDeviceEventModel extends Model
 {
     protected $table = 'device_events';
 

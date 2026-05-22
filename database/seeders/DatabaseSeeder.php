@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
-use DeviceEventIngestionService\Application\Services\DeviceEventIngestion\DeviceEventIngestionRequest;
+use DeviceEventIngestionService\Application\Services\DeviceEventIngestion\DeviceEventIngestionCommand;
 use DeviceEventIngestionService\Application\Services\DeviceEventIngestion\DeviceEventIngestionService;
 use DeviceEventIngestionService\Infrastructure\Model\Device\EloquentDeviceModel;
 use DeviceEventIngestionService\Infrastructure\Model\Vehicle\EloquentVehicleModel;
@@ -62,11 +62,11 @@ class DatabaseSeeder extends Seeder
                 ];
             }
 
-            $handler->execute(new DeviceEventIngestionRequest('CV200', $payload));
+            $handler->execute(new DeviceEventIngestionCommand('CV200', $payload));
         }
 
         // One Howen entry showing the cross-protocol normalisation.
-        $handler->execute(new DeviceEventIngestionRequest('HOWEN', [
+        $handler->execute(new DeviceEventIngestionCommand('HOWEN', [
             'protocol'  => 'HOWEN',
             'imei'      => '863725041234568',
             'plate'     => 'LV-9999',

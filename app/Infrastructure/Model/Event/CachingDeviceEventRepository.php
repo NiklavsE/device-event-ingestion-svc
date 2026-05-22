@@ -8,14 +8,13 @@ use DeviceEventIngestionService\Domain\DeviceEvent\DeviceEvent;
 use DeviceEventIngestionService\Domain\DeviceEvent\Exception\DeviceEventAlreadyExists;
 use DeviceEventIngestionService\Domain\DeviceEvent\Interface\DeviceEventRepositoryInterface;
 use DeviceEventIngestionService\Domain\DeviceEvent\Queries\VehicleEventQuery;
-use Psr\SimpleCache\CacheInterface;
-use Throwable;
+use Illuminate\Contracts\Cache\Repository as CacheRepository;
 
 final readonly class CachingDeviceEventRepository implements DeviceEventRepositoryInterface
 {
     public function __construct(
         private DeviceEventRepositoryInterface $inner,
-        private CacheInterface $cache,
+        private CacheRepository $cache,
         private int $ttlSeconds,
         private string $keyPrefix,
     ) {
@@ -25,22 +24,23 @@ final readonly class CachingDeviceEventRepository implements DeviceEventReposito
     {
         $key = $this->keyPrefix . $event->dedupHash->value();
 
-        if ($this->cache->has($key)) {
+        // Atomic set-if-absent — returns false when the key already exists.
+        // Closes the TOCTOU window of a separate has()/set() pair: two
+        // concurrent workers handling the same dedup hash will see exactly
+        // one `true` and one `false` here, so only one reaches the DB.
+        if (false === $this->cache->add($key, true, $this->ttlSeconds)) {
             throw new DeviceEventAlreadyExists($event->dedupHash);
         }
 
         try {
             $this->inner->save($event);
         } catch (DeviceEventAlreadyExists $e) {
-            // Cache missed but the DB caught the duplicate. Record it so
-            // the next call short-circuits at the cache.
-            $this->cache->set($key, true, $this->ttlSeconds);
-            throw $e;
-        } catch (Throwable $e) {
+            // We won the cache race but the DB still rejected — likely a
+            // duplicate that landed before our cache entry was populated
+            // (cache flush, key eviction). The cache row we just wrote
+            // already short-circuits future calls; nothing else to do.
             throw $e;
         }
-
-        $this->cache->set($key, true, $this->ttlSeconds);
     }
 
     public function ofVehicleQuery(VehicleEventQuery $criteria): array

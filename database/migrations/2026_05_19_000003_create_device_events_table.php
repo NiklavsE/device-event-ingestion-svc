@@ -36,6 +36,12 @@ return new class extends Migration {
             $table->timestamps();
 
             $table->foreign('device_id')->references('id')->on('devices')->restrictOnDelete();
+            // Events are a historical snapshot of the device's installation
+            // at the time. RESTRICT prevents a vehicle from being deleted
+            // while events still point at it — matching the device FK above.
+            $table->foreign('vehicle_external_id')
+                ->references('external_id')->on('vehicles')
+                ->restrictOnDelete();
 
             // Primary query path: events for a vehicle ordered by time.
             $table->index(['vehicle_external_id', 'event_timestamp'], 'idx_device_events_vehicle_time');

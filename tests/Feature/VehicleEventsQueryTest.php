@@ -4,107 +4,176 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use Database\Factories\DeviceEventFactory;
+use DeviceEventIngestionService\Infrastructure\Model\Device\EloquentDeviceModel;
+use DeviceEventIngestionService\Infrastructure\Model\Event\EloquentDeviceEventModel;
 use Tests\FeatureTestCase;
 
 class VehicleEventsQueryTest extends FeatureTestCase
 {
+    private EloquentDeviceModel $device;
+
     protected function setUp(): void
     {
         parent::setUp();
 
-        // Every test in this class queries events for the default vehicle,
-        // so the device must be commissioned up front. The unknown-vehicle
-        // path is exercised by testReturnsEmptyForUnknownVehicle() using a
-        // different vehicle id (no events exist for it).
-        $this->givenDevice();
+        // Read-side tests: events are seeded directly via DeviceEventFactory,
+        // bypassing the ingestion pipeline. We still need a device row so the
+        // event's device_id FK points somewhere real.
+        $this->device = $this->createDevice();
+    }
+
+    public function testReturnsFullyShapedResponseForASingleEvent(): void
+    {
+        // Pins every field that the resource emits so the assertion below
+        // locks down the complete read-side contract: protocol, identifiers,
+        // event metadata, geo, and the media subtree.
+        $event = DeviceEventFactory::new()
+            ->forDevice($this->device)
+            ->state([
+                'protocol'        => 'CV200',
+                'event_type'      => 'harsh_braking',
+                'event_timestamp' => '2026-05-12T10:15:30Z',
+                'latitude'        => 56.9496,
+                'longitude'       => 24.1052,
+                'speed'           => 74,
+                'heading'         => 182,
+            ])
+            ->withMedia('20260512_101530_CH2.mp4')
+            ->create();
+
+        $this->getEvents('LV-1234')
+            ->assertStatus(200)
+            ->assertExactJson([
+                'data' => [
+                    [
+                        'id'              => $event->id,
+                        'protocol'        => 'CV200',
+                        'device_imei'     => '863725041234567',
+                        'vehicle_id'      => 'LV-1234',
+                        'event_type'      => 'harsh_braking',
+                        'event_timestamp' => '2026-05-12T10:15:30Z',
+                        'latitude'        => 56.9496,
+                        'longitude'       => 24.1052,
+                        'speed'           => 74.0,
+                        'heading'         => 182,
+                        'media'           => [
+                            'channel'          => 2,
+                            'file_name'        => '20260512_101530_CH2.mp4',
+                            'duration_seconds' => 18,
+                            'codec'            => 'h264',
+                            'media_type'       => 'video',
+                        ],
+                    ],
+                ],
+                'meta' => [
+                    'vehicle_id' => 'LV-1234',
+                    'count'      => 1,
+                ],
+            ]);
     }
 
     public function testReturnsEventsForTheVehicleInDescendingOrder(): void
     {
-        $this->postEvent($this->cv200(['event_id' => 'evt_001', 'timestamp' => '2026-05-01T10:00:00Z']));
-        $this->postEvent($this->cv200(['event_id' => 'evt_002', 'timestamp' => '2026-05-02T10:00:00Z']));
-        $this->postEvent($this->cv200(['event_id' => 'evt_003', 'timestamp' => '2026-05-03T10:00:00Z']));
+        $event1 = DeviceEventFactory::new()->forDevice($this->device)->at('2026-05-01T10:00:00Z')->create();
+        $event2 = DeviceEventFactory::new()->forDevice($this->device)->at('2026-05-02T10:00:00Z')->create();
+        $event3 = DeviceEventFactory::new()->forDevice($this->device)->at('2026-05-03T10:00:00Z')->create();
 
-        $response = $this->getEvents('LV-1234');
-
-        $response->assertStatus(200)
-            ->assertJsonPath('meta.count', 3)
-            ->assertJsonCount(3, 'data');
-
-        $timestamps = array_column($response->json('data'), 'event_timestamp');
-        self::assertSame([
-            '2026-05-03T10:00:00Z',
-            '2026-05-02T10:00:00Z',
-            '2026-05-01T10:00:00Z',
-        ], $timestamps);
+        $this->getEvents('LV-1234')
+            ->assertStatus(200)
+            ->assertExactJson([
+                'data' => [
+                    $this->expectedEventJson($event3),
+                    $this->expectedEventJson($event2),
+                    $this->expectedEventJson($event1),
+                ],
+                'meta' => [
+                    'vehicle_id' => 'LV-1234',
+                    'count'      => 3,
+                ],
+            ]);
     }
 
     public function testFiltersByEventType(): void
     {
-        $this->postEvent($this->cv200(['event_id' => 'evt_001', 'event_type' => 'harsh_braking']));
-        $this->postEvent($this->cv200(['event_id' => 'evt_002', 'event_type' => 'speeding']));
+        DeviceEventFactory::new()->forDevice($this->device)->ofType('harsh_braking')->create();
+        $matching = DeviceEventFactory::new()->forDevice($this->device)->ofType('speeding')->create();
 
-        $response = $this->getEvents('LV-1234', ['event_type' => 'speeding']);
-
-        $response->assertStatus(200)
-            ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.event_type', 'speeding');
+        $this->getEvents('LV-1234', ['event_type' => 'speeding'])
+            ->assertStatus(200)
+            ->assertExactJson([
+                'data' => [$this->expectedEventJson($matching)],
+                'meta' => ['vehicle_id' => 'LV-1234', 'count' => 1],
+            ]);
     }
 
     public function testFiltersByFromAndTo(): void
     {
-        $this->postEvent($this->cv200(['event_id' => 'evt_001', 'timestamp' => '2026-04-30T10:00:00Z']));
-        $this->postEvent($this->cv200(['event_id' => 'evt_002', 'timestamp' => '2026-05-02T10:00:00Z']));
-        $this->postEvent($this->cv200(['event_id' => 'evt_003', 'timestamp' => '2026-06-01T10:00:00Z']));
+        DeviceEventFactory::new()->forDevice($this->device)->at('2026-04-30T10:00:00Z')->create();
+        $inRange = DeviceEventFactory::new()->forDevice($this->device)->at('2026-05-02T10:00:00Z')->create();
+        DeviceEventFactory::new()->forDevice($this->device)->at('2026-06-01T10:00:00Z')->create();
 
-        $response = $this->getEvents('LV-1234', [
-            'from' => '2026-05-01',
-            'to'   => '2026-05-31',
-        ]);
-
-        $response->assertStatus(200)
-            ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.event_timestamp', '2026-05-02T10:00:00Z');
+        $this->getEvents('LV-1234', ['from' => '2026-05-01', 'to' => '2026-05-31'])
+            ->assertStatus(200)
+            ->assertExactJson([
+                'data' => [$this->expectedEventJson($inRange)],
+                'meta' => ['vehicle_id' => 'LV-1234', 'count' => 1],
+            ]);
     }
 
     public function testFiltersByHasMedia(): void
     {
-        $this->postEvent($this->cv200(['event_id' => 'evt_001']));
-
-        $noMedia = $this->cv200(['event_id' => 'evt_002']);
-        unset($noMedia['camera']);
-        $this->postEvent($noMedia);
+        $withMedia    = DeviceEventFactory::new()
+            ->forDevice($this->device)
+            ->withMedia('20260512_101530_CH2.mp4')
+            ->create();
+        $withoutMedia = DeviceEventFactory::new()->forDevice($this->device)->create();
 
         $this->getEvents('LV-1234', ['has_media' => '1'])
             ->assertStatus(200)
-            ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.media.file_name', '20260512_101530_CH2.mp4');
+            ->assertExactJson([
+                'data' => [$this->expectedEventJson($withMedia)],
+                'meta' => ['vehicle_id' => 'LV-1234', 'count' => 1],
+            ]);
 
         $this->getEvents('LV-1234', ['has_media' => '0'])
             ->assertStatus(200)
-            ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.media', null);
+            ->assertExactJson([
+                'data' => [$this->expectedEventJson($withoutMedia)],
+                'meta' => ['vehicle_id' => 'LV-1234', 'count' => 1],
+            ]);
     }
 
     public function testRespectsLimitWithHardCap(): void
     {
-        for ($i = 1; $i <= 5; $i++) {
-            $this->postEvent($this->cv200([
-                'event_id'  => "evt_{$i}",
-                'timestamp' => sprintf('2026-05-%02dT10:00:00Z', $i),
-            ]));
-        }
+        $events = DeviceEventFactory::new()
+            ->forDevice($this->device)
+            ->count(5)
+            ->sequence(fn ($s) => ['event_timestamp' => sprintf('2026-05-%02dT10:00:00Z', $s->index + 1)])
+            ->create();
+
+        // Latest first, capped at 2 by the limit query param.
+        $expectedSlice = [
+            $this->expectedEventJson($events[4]),
+            $this->expectedEventJson($events[3]),
+        ];
 
         $this->getEvents('LV-1234', ['limit' => 2])
             ->assertStatus(200)
-            ->assertJsonCount(2, 'data');
+            ->assertExactJson([
+                'data' => $expectedSlice,
+                'meta' => ['vehicle_id' => 'LV-1234', 'count' => 2],
+            ]);
     }
 
     public function testReturnsEmptyForUnknownVehicle(): void
     {
         $this->getEvents('UNKNOWN')
             ->assertStatus(200)
-            ->assertJsonCount(0, 'data');
+            ->assertExactJson([
+                'data' => [],
+                'meta' => ['vehicle_id' => 'UNKNOWN', 'count' => 0],
+            ]);
     }
 
     public function testRejectsInvalidDate(): void
@@ -112,6 +181,37 @@ class VehicleEventsQueryTest extends FeatureTestCase
         $this->getEvents('LV-1234', ['from' => 'not-a-date'])
             ->assertStatus(422)
             ->assertJsonValidationErrors('from');
+    }
+
+    /**
+     * Builds the expected JSON shape for a single event from the seeded
+     * model. The assertion compares this against the resource's actual
+     * output — so any drift in field names, missing fields, or format
+     * transformations (e.g. timestamp formatting) shows up as a diff.
+     *
+     * @return array<string, mixed>
+     */
+    private function expectedEventJson(EloquentDeviceEventModel $event): array
+    {
+        return [
+            'id'              => $event->id,
+            'protocol'        => $event->protocol,
+            'device_imei'     => $event->device->imei,
+            'vehicle_id'      => $event->vehicle_external_id,
+            'event_type'      => $event->event_type,
+            'event_timestamp' => $event->event_timestamp->format('Y-m-d\TH:i:s\Z'),
+            'latitude'        => $event->latitude,
+            'longitude'       => $event->longitude,
+            'speed'           => $event->speed,
+            'heading'         => $event->heading,
+            'media'           => $event->media === null ? null : [
+                'channel'          => $event->media->channel,
+                'file_name'        => $event->media->file_name,
+                'duration_seconds' => $event->media->duration_seconds,
+                'codec'            => $event->media->codec,
+                'media_type'       => $event->media->media_type,
+            ],
+        ];
     }
 
     /**
@@ -126,29 +226,5 @@ class VehicleEventsQueryTest extends FeatureTestCase
         }
 
         return $this->withHeader('X-Api-Key', 'test-api-key')->getJson($url);
-    }
-
-    /**
-     * @param array<string, mixed> $overrides
-     * @return array<string, mixed>
-     */
-    private function cv200(array $overrides = []): array
-    {
-        return array_replace_recursive([
-            'protocol'    => 'CV200',
-            'device_imei' => '863725041234567',
-            'vehicle_id'  => 'LV-1234',
-            'event_id'    => 'evt_default',
-            'event_type'  => 'harsh_braking',
-            'timestamp'   => '2026-05-12T10:15:30Z',
-            'gps'         => ['lat' => 56.9496, 'lng' => 24.1052, 'speed' => 74, 'heading' => 182],
-            'camera'      => [
-                'channel'          => 2,
-                'media_type'       => 'video',
-                'file_name'        => '20260512_101530_CH2.mp4',
-                'duration_seconds' => 18,
-                'codec'            => 'h264',
-            ],
-        ], $overrides);
     }
 }

@@ -21,22 +21,12 @@ class AppServiceProvider extends ServiceProvider
         $perMinute = (int) config('ingestion.rate_limit.per_minute', 120);
 
         RateLimiter::for('ingestion', function (Request $request) use ($perMinute) {
-            $imei = $this->extractImei($request);
-            $key  = $imei !== null ? "imei:{$imei}" : 'ip:' . $request->ip();
+            $apiKey = $request->header('X-Api-Key');
+            $key    = is_string($apiKey) && $apiKey !== ''
+                ? 'key:' . sha1($apiKey)
+                : 'ip:' . $request->ip();
 
             return [Limit::perMinute($perMinute)->by($key)];
         });
-    }
-
-    private function extractImei(Request $request): ?string
-    {
-        if (false === $request->isJson()) {
-            return null;
-        }
-
-        $payload = $request->json()->all();
-        $imei    = $payload['device_imei'] ?? $payload['imei'] ?? null;
-
-        return is_string($imei) && $imei !== '' ? $imei : null;
     }
 }

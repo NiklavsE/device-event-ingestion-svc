@@ -8,11 +8,10 @@ use DeviceEventIngestionService\Application\Services\ListVehicleEvents\ListVehic
 use DeviceEventIngestionService\Ui\Http\Requests\ListVehicleEventsRequest;
 use DeviceEventIngestionService\Ui\Http\Resources\DeviceEventResource;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Routing\Controller;
 
-class VehicleEventsController extends Controller
+readonly class VehicleEventsController
 {
-    public function __construct(private readonly ListVehicleEventsService $handler)
+    public function __construct(private ListVehicleEventsService $handler)
     {
     }
 

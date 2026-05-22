@@ -14,6 +14,7 @@ use DeviceEventIngestionService\Domain\DeviceEvent\IncomingEvent;
 final class Device
 {
     private function __construct(
+        private readonly ?int $id,
         private readonly DeviceImei $imei,
         private readonly VehicleId $vehicleId,
         private ?DateTimeImmutable $lastSeenAt,
@@ -22,15 +23,21 @@ final class Device
 
     public static function commission(DeviceImei $imei, VehicleId $vehicleId): self
     {
-        return new self($imei, $vehicleId, null);
+        return new self(null, $imei, $vehicleId, null);
     }
 
     public static function rehydrate(
         DeviceImei $imei,
         VehicleId $vehicleId,
         ?DateTimeImmutable $lastSeenAt,
+        ?int $id = null,
     ): self {
-        return new self($imei, $vehicleId, $lastSeenAt);
+        return new self($id, $imei, $vehicleId, $lastSeenAt);
+    }
+
+    public function id(): ?int
+    {
+        return $this->id;
     }
 
     public function imei(): DeviceImei
@@ -76,6 +83,7 @@ final class Device
             $event->media,
             $event->dedupHash,
             $event->rawPayload,
+            deviceId: $this->id,
         );
     }
 }
