@@ -9,19 +9,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
-/**
- * Static API key check. Intentionally minimal — a take-home shouldn't
- * pull in Sanctum/Passport, but production should swap this for a
- * proper credential provider (per-tenant keys + rotation).
- *
- * Missing-key behaviour is environment-aware:
- *   - local / testing: bypass auth (developer convenience)
- *   - any other APP_ENV: refuse with 500 and a critical log line, so a
- *     misconfigured deploy fails loudly instead of silently world-writeable.
- */
 class ApiKeyAuth
 {
-    private const ANONYMOUS_ENVIRONMENTS = ['local', 'testing'];
+    private const array ANONYMOUS_ENVIRONMENTS = ['local', 'testing'];
 
     public function handle(Request $request, Closure $next): Response
     {
@@ -35,7 +25,7 @@ class ApiKeyAuth
 
         if (false === is_string($presented) || false === hash_equals($configured, $presented)) {
             return response()->json([
-                'error' => 'unauthorized',
+                'error'   => 'unauthorized',
                 'message' => 'Missing or invalid API key.',
             ], 401);
         }
@@ -52,12 +42,12 @@ class ApiKeyAuth
 
         Log::critical('ingestion.api_key.missing', [
             'message' => 'INGESTION_API_KEY is not configured; refusing ingestion requests.',
-            'env' => $env,
-            'path' => $request->path(),
+            'env'     => $env,
+            'path'    => $request->path(),
         ]);
 
         return response()->json([
-            'error' => 'service_misconfigured',
+            'error'   => 'service_misconfigured',
             'message' => 'Ingestion endpoint is not properly configured.',
         ], 500);
     }

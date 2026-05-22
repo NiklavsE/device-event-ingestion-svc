@@ -11,12 +11,7 @@ use DeviceEventIngestionService\Domain\DeviceEvent\Queries\VehicleEventQuery;
 interface DeviceEventRepositoryInterface
 {
     /**
-     * Persist a device event.
-     *
-     * @throws DeviceEventAlreadyExists when an event with the same dedup
-     *         hash is already on record. Implementations MUST surface
-     *         duplicates via this exception — the application layer treats
-     *         duplicate detection as expected behaviour, not a generic error.
+     * @throws DeviceEventAlreadyExists
      */
     public function save(DeviceEvent $event): void;
 

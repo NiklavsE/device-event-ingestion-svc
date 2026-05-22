@@ -6,9 +6,9 @@ namespace DeviceEventIngestionService\Domain\DeviceEvent\ValueObject;
 
 use DeviceEventIngestionService\Domain\DeviceEvent\Exception\InvalidValueObjectException;
 
-final class EventType
+final readonly class EventType
 {
-    private function __construct(private readonly string $value)
+    private function __construct(private string $value)
     {
     }
 

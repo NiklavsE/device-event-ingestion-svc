@@ -8,11 +8,6 @@ use DeviceEventIngestionService\Domain\DeviceEvent\Factory\IncomingEventFactoryR
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-/**
- * Top-level validation only — protocol-specific shape is handled
- * inside each EventFactoryInterface implementation so the rules live next to the
- * code that knows them.
- */
 class IngestDeviceEventRequest extends FormRequest
 {
     public function authorize(): bool

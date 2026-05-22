@@ -6,8 +6,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => response()->json([
     'service' => config('app.name'),
-    'docs' => url('/docs'),
-    'health' => url('/healthz'),
+    'docs'    => url('/docs'),
+    'health'  => url('/healthz'),
 ]));
 
 Route::get('/docs', fn () => view('docs.swagger'));

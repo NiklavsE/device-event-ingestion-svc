@@ -9,9 +9,9 @@ use DateTimeImmutable;
 use DateTimeZone;
 use Throwable;
 
-final class EventTimestamp
+final readonly class EventTimestamp
 {
-    private function __construct(private readonly DateTimeImmutable $value)
+    private function __construct(private DateTimeImmutable $value)
     {
     }
 

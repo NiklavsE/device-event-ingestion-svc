@@ -30,17 +30,17 @@ final class EloquentDeviceEventRepository implements DeviceEventRepositoryInterf
 
             try {
                 $row = EloquentEventModel::create([
-                    'device_id' => $deviceId,
+                    'device_id'           => $deviceId,
                     'vehicle_external_id' => $event->vehicleId->value(),
-                    'protocol' => $event->protocol,
-                    'event_type' => $event->eventType->value(),
-                    'event_timestamp' => $event->eventTimestamp->toDateTimeImmutable(),
-                    'latitude' => $event->location->latitude(),
-                    'longitude' => $event->location->longitude(),
-                    'speed' => $event->location->speed(),
-                    'heading' => $event->location->heading(),
-                    'dedup_hash' => $event->dedupHash->value(),
-                    'raw_payload' => $event->rawPayload,
+                    'protocol'            => $event->protocol,
+                    'event_type'          => $event->eventType->value(),
+                    'event_timestamp'     => $event->eventTimestamp->toDateTimeImmutable(),
+                    'latitude'            => $event->location->latitude(),
+                    'longitude'           => $event->location->longitude(),
+                    'speed'               => $event->location->speed(),
+                    'heading'             => $event->location->heading(),
+                    'dedup_hash'          => $event->dedupHash->value(),
+                    'raw_payload'         => $event->rawPayload,
                 ]);
             } catch (QueryException $e) {
                 if (false === $this->isUniqueViolation($e)) {
@@ -54,12 +54,12 @@ final class EloquentDeviceEventRepository implements DeviceEventRepositoryInterf
 
             if ($event->hasMedia()) {
                 EloquentDeviceEventMediaModel::create([
-                    'event_id' => $row->id,
-                    'channel' => $event->media->channel(),
-                    'file_name' => $event->media->fileName(),
+                    'event_id'         => $row->id,
+                    'channel'          => $event->media->channel(),
+                    'file_name'        => $event->media->fileName(),
                     'duration_seconds' => $event->media->durationSeconds(),
-                    'codec' => $event->media->codec(),
-                    'media_type' => $event->media->mediaType(),
+                    'codec'            => $event->media->codec(),
+                    'media_type'       => $event->media->mediaType(),
                 ]);
             }
         });

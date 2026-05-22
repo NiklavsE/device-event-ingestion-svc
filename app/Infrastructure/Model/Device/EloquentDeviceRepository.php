@@ -17,7 +17,6 @@ final class EloquentDeviceRepository implements DeviceRepositoryInterface
     {
         $row = EloquentDeviceModel::query()->where('imei', $imei->value())->first();
         if ($row === null) {
-            ;
             throw new DeviceNotFoundException($imei);
         }
 
@@ -39,7 +38,7 @@ final class EloquentDeviceRepository implements DeviceRepositoryInterface
         }
 
         $row->vehicle_external_id = $device->vehicleId()->value();
-        $row->last_seen_at = $device->lastSeenAt() === null
+        $row->last_seen_at        = $device->lastSeenAt() === null
             ? null
             : Carbon::instance($device->lastSeenAt());
 

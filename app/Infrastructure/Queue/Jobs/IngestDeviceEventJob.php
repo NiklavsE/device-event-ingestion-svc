@@ -19,7 +19,7 @@ final class IngestDeviceEventJob implements ShouldQueue
     use Queueable;
     use SerializesModels;
 
-    public int $tries = 3;
+    public int $tries   = 3;
     public int $backoff = 5;
 
     /** @param array<string, mixed> $payload */

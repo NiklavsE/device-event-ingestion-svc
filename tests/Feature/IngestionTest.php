@@ -59,7 +59,7 @@ class IngestionTest extends FeatureTestCase
         // Device is installed on LV-1234, but the payload claims LV-9999.
         $this->givenDevice(vehicleExternalId: 'LV-1234');
 
-        $payload = $this->cv200Payload();
+        $payload               = $this->cv200Payload();
         $payload['vehicle_id'] = 'LV-9999';
 
         $this->postEvent($payload)
@@ -83,7 +83,7 @@ class IngestionTest extends FeatureTestCase
 
     public function testRejectsUnknownProtocol(): void
     {
-        $payload = $this->cv200Payload();
+        $payload             = $this->cv200Payload();
         $payload['protocol'] = 'NOPE';
 
         $this->postEvent($payload)->assertStatus(422)
@@ -178,19 +178,19 @@ class IngestionTest extends FeatureTestCase
     private function cv200Payload(): array
     {
         return [
-            'protocol' => 'CV200',
+            'protocol'    => 'CV200',
             'device_imei' => '863725041234567',
-            'vehicle_id' => 'LV-1234',
-            'event_id' => 'evt_20260512_00001',
-            'event_type' => 'harsh_braking',
-            'timestamp' => '2026-05-12T10:15:30Z',
-            'gps' => ['lat' => 56.9496, 'lng' => 24.1052, 'speed' => 74, 'heading' => 182],
-            'camera' => [
-                'channel' => 2,
-                'media_type' => 'video',
-                'file_name' => '20260512_101530_CH2.mp4',
+            'vehicle_id'  => 'LV-1234',
+            'event_id'    => 'evt_20260512_00001',
+            'event_type'  => 'harsh_braking',
+            'timestamp'   => '2026-05-12T10:15:30Z',
+            'gps'         => ['lat' => 56.9496, 'lng' => 24.1052, 'speed' => 74, 'heading' => 182],
+            'camera'      => [
+                'channel'          => 2,
+                'media_type'       => 'video',
+                'file_name'        => '20260512_101530_CH2.mp4',
                 'duration_seconds' => 18,
-                'codec' => 'h264',
+                'codec'            => 'h264',
             ],
         ];
     }
@@ -199,13 +199,13 @@ class IngestionTest extends FeatureTestCase
     private function howenPayload(): array
     {
         return [
-            'protocol' => 'HOWEN',
-            'imei' => '863725041234567',
-            'plate' => 'LV-1234',
+            'protocol'  => 'HOWEN',
+            'imei'      => '863725041234567',
+            'plate'     => 'LV-1234',
             'alarmCode' => 'HB',
             'alarmTime' => 1778580930,
-            'location' => ['latitude' => 56.9496, 'longitude' => 24.1052, 'speedKmh' => 74],
-            'video' => ['ch' => 2, 'name' => '20260512_101530_CH2.mp4', 'len' => 18, 'format' => 'h264'],
+            'location'  => ['latitude' => 56.9496, 'longitude' => 24.1052, 'speedKmh' => 74],
+            'video'     => ['ch' => 2, 'name' => '20260512_101530_CH2.mp4', 'len' => 18, 'format' => 'h264'],
         ];
     }
 }

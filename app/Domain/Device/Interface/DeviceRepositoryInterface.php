@@ -14,9 +14,5 @@ interface DeviceRepositoryInterface
      */
     public function ofImei(DeviceImei $imei): Device;
 
-    /**
-     * Persist the device's mutable state (currently just last_seen_at).
-     * Should be a fast no-op when the aggregate hasn't actually changed.
-     */
     public function save(Device $device): void;
 }

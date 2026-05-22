@@ -48,11 +48,11 @@ class EloquentEventModel extends Model
 
     protected $casts = [
         'event_timestamp' => 'datetime',
-        'latitude' => 'float',
-        'longitude' => 'float',
-        'speed' => 'float',
-        'heading' => 'integer',
-        'raw_payload' => 'array',
+        'latitude'        => 'float',
+        'longitude'       => 'float',
+        'speed'           => 'float',
+        'heading'         => 'integer',
+        'raw_payload'     => 'array',
     ];
 
     /** @return BelongsTo<EloquentDeviceModel, $this> */

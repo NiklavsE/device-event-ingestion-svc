@@ -24,7 +24,7 @@ class VehicleEventsController extends Controller
             ->additional([
                 'meta' => [
                     'vehicle_id' => $vehicleId,
-                    'count' => count($events),
+                    'count'      => count($events),
                 ],
             ])
             ->response();

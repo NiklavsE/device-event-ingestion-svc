@@ -6,13 +6,13 @@ namespace DeviceEventIngestionService\Domain\DeviceEvent\ValueObject;
 
 use DeviceEventIngestionService\Domain\DeviceEvent\Exception\InvalidValueObjectException;
 
-final class GeoPoint
+final readonly class GeoPoint
 {
     private function __construct(
-        private readonly float $latitude,
-        private readonly float $longitude,
-        private readonly ?float $speed,
-        private readonly ?int $heading,
+        private float  $latitude,
+        private float  $longitude,
+        private ?float $speed,
+        private ?int   $heading,
     ) {
     }
 

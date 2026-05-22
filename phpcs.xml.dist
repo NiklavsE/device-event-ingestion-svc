@@ -19,18 +19,13 @@
     <arg name="colors"/>
     <arg value="sp"/>
 
-    <!-- PSR-12 covers PSR-1, PSR-2, plus modern formatting rules. -->
     <rule ref="PSR12">
         <!-- Allow short closures and arrow functions without surrounding blank lines. -->
         <exclude name="PSR12.Files.FileHeader.SpacingAfterBlock"/>
     </rule>
-
-    <!-- Enforce strict_types on every PHP file. -->
     <rule ref="PSR12.Files.DeclareStatement">
         <severity>5</severity>
     </rule>
-
-    <!-- 120-char soft / 140-char hard so docblocks and long route definitions fit. -->
     <rule ref="Generic.Files.LineLength">
         <properties>
             <property name="lineLimit" value="120"/>
@@ -38,6 +33,12 @@
             <property name="ignoreComments" value="true"/>
         </properties>
     </rule>
-
-    <!-- Migrations use anonymous classes returning new class extends Migration{} — phpcs is happy as long as PSR-12 spacing is intact. -->
+    <rule ref="Generic.Formatting.MultipleStatementAlignment">
+        <properties>
+            <property name="maxPadding" value="20"/>
+        </properties>
+    </rule>
+    <rule ref="Squiz.Arrays.ArrayDeclaration.DoubleArrowNotAligned">
+        <exclude-pattern>config/*</exclude-pattern>
+    </rule>
 </ruleset>

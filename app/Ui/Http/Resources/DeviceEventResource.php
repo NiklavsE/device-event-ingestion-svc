@@ -9,10 +9,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * Renders a domain DeviceEvent for the public API. Pure projection — no
- * persistence concerns, no Eloquent. The application/repository layer is
- * responsible for handing in a fully-hydrated DeviceEvent.
- *
  * @property-read DeviceEvent $resource
  */
 class DeviceEventResource extends JsonResource
@@ -23,17 +19,17 @@ class DeviceEventResource extends JsonResource
         $event = $this->resource;
 
         return [
-            'id' => $event->id,
-            'protocol' => $event->protocol,
-            'device_imei' => $event->deviceImei->value(),
-            'vehicle_id' => $event->vehicleId->value(),
-            'event_type' => $event->eventType->value(),
+            'id'              => $event->id,
+            'protocol'        => $event->protocol,
+            'device_imei'     => $event->deviceImei->value(),
+            'vehicle_id'      => $event->vehicleId->value(),
+            'event_type'      => $event->eventType->value(),
             'event_timestamp' => $event->eventTimestamp->toIso8601(),
-            'latitude' => $event->location->latitude(),
-            'longitude' => $event->location->longitude(),
-            'speed' => $event->location->speed(),
-            'heading' => $event->location->heading(),
-            'media' => $event->hasMedia() ? $event->media->toArray() : null,
+            'latitude'        => $event->location->latitude(),
+            'longitude'       => $event->location->longitude(),
+            'speed'           => $event->location->speed(),
+            'heading'         => $event->location->heading(),
+            'media'           => $event->hasMedia() ? $event->media->toArray() : null,
         ];
     }
 }

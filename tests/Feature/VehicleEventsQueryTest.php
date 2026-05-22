@@ -59,7 +59,7 @@ class VehicleEventsQueryTest extends FeatureTestCase
 
         $response = $this->getEvents('LV-1234', [
             'from' => '2026-05-01',
-            'to' => '2026-05-31',
+            'to'   => '2026-05-31',
         ]);
 
         $response->assertStatus(200)
@@ -90,7 +90,7 @@ class VehicleEventsQueryTest extends FeatureTestCase
     {
         for ($i = 1; $i <= 5; $i++) {
             $this->postEvent($this->cv200([
-                'event_id' => "evt_{$i}",
+                'event_id'  => "evt_{$i}",
                 'timestamp' => sprintf('2026-05-%02dT10:00:00Z', $i),
             ]));
         }
@@ -135,19 +135,19 @@ class VehicleEventsQueryTest extends FeatureTestCase
     private function cv200(array $overrides = []): array
     {
         return array_replace_recursive([
-            'protocol' => 'CV200',
+            'protocol'    => 'CV200',
             'device_imei' => '863725041234567',
-            'vehicle_id' => 'LV-1234',
-            'event_id' => 'evt_default',
-            'event_type' => 'harsh_braking',
-            'timestamp' => '2026-05-12T10:15:30Z',
-            'gps' => ['lat' => 56.9496, 'lng' => 24.1052, 'speed' => 74, 'heading' => 182],
-            'camera' => [
-                'channel' => 2,
-                'media_type' => 'video',
-                'file_name' => '20260512_101530_CH2.mp4',
+            'vehicle_id'  => 'LV-1234',
+            'event_id'    => 'evt_default',
+            'event_type'  => 'harsh_braking',
+            'timestamp'   => '2026-05-12T10:15:30Z',
+            'gps'         => ['lat' => 56.9496, 'lng' => 24.1052, 'speed' => 74, 'heading' => 182],
+            'camera'      => [
+                'channel'          => 2,
+                'media_type'       => 'video',
+                'file_name'        => '20260512_101530_CH2.mp4',
                 'duration_seconds' => 18,
-                'codec' => 'h264',
+                'codec'            => 'h264',
             ],
         ], $overrides);
     }

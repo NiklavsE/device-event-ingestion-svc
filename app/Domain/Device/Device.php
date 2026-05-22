@@ -11,15 +11,6 @@ use DeviceEventIngestionService\Domain\DeviceEvent\ValueObject\DeviceImei;
 use DeviceEventIngestionService\Domain\DeviceEvent\ValueObject\VehicleId;
 use DeviceEventIngestionService\Domain\DeviceEvent\IncomingEvent;
 
-/**
- * Device aggregate root.
- *
- * Owns the device→vehicle installation binding and the device's last-seen
- * heartbeat. Acts as the gatekeeper for every event the device emits — the
- * application service hands an IncomingEvent in, the Device asserts its
- * invariants (vehicle match) and emits an authoritative DeviceEvent the
- * EventRepository can persist without further domain logic.
- */
 final class Device
 {
     private function __construct(
@@ -29,18 +20,11 @@ final class Device
     ) {
     }
 
-    /**
-     * Commission a new device. Called from the (out-of-band) onboarding
-     * flow, not from event ingestion.
-     */
     public static function commission(DeviceImei $imei, VehicleId $vehicleId): self
     {
         return new self($imei, $vehicleId, null);
     }
 
-    /**
-     * Rehydrate from persistence. Only the DeviceRepository should call this.
-     */
     public static function rehydrate(
         DeviceImei $imei,
         VehicleId $vehicleId,

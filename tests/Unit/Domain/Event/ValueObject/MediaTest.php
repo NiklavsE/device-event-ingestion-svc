@@ -47,11 +47,11 @@ class MediaTest extends TestCase
         $media = Media::create(1, 'x.mp4', 5, 'h264', 'video');
 
         self::assertSame([
-            'channel' => 1,
-            'file_name' => 'x.mp4',
+            'channel'          => 1,
+            'file_name'        => 'x.mp4',
             'duration_seconds' => 5,
-            'codec' => 'h264',
-            'media_type' => 'video',
+            'codec'            => 'h264',
+            'media_type'       => 'video',
         ], $media->toArray());
     }
 

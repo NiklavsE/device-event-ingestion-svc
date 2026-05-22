@@ -32,14 +32,14 @@ final readonly class DeviceEventIngestionService
             $this->devices->save($device);
         } catch (DeviceEventAlreadyExists $e) {
             $this->logger->info('device_event.duplicate', [
-                'protocol' => $request->protocol,
+                'protocol'   => $request->protocol,
                 'dedup_hash' => $e->dedupHash->value(),
             ]);
         } catch (Throwable $e) {
             $this->logger->error('device_event.ingest_failed', [
-                'protocol' => $request->protocol,
+                'protocol'  => $request->protocol,
                 'exception' => $e::class,
-                'message' => $e->getMessage(),
+                'message'   => $e->getMessage(),
             ]);
             throw $e;
         }
