@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<ruleset name="device-event-ingestion-svc">
+    <description>PSR-12 with project-specific overrides.</description>
+
+    <file>app</file>
+    <file>config</file>
+    <file>database</file>
+    <file>routes</file>
+    <file>tests</file>
+
+    <exclude-pattern>*/vendor/*</exclude-pattern>
+    <exclude-pattern>*/storage/*</exclude-pattern>
+    <exclude-pattern>*/bootstrap/cache/*</exclude-pattern>
+    <exclude-pattern>*/.phpunit.cache/*</exclude-pattern>
+    <exclude-pattern>*/.composer-cache/*</exclude-pattern>
+    <exclude-pattern>*/.composer-home/*</exclude-pattern>
+
+    <arg name="extensions" value="php"/>
+    <arg name="colors"/>
+    <arg value="sp"/>
+
+    <!-- PSR-12 covers PSR-1, PSR-2, plus modern formatting rules. -->
+    <rule ref="PSR12">
+        <!-- Allow short closures and arrow functions without surrounding blank lines. -->
+        <exclude name="PSR12.Files.FileHeader.SpacingAfterBlock"/>
+    </rule>
+
+    <!-- Enforce strict_types on every PHP file. -->
+    <rule ref="PSR12.Files.DeclareStatement">
+        <severity>5</severity>
+    </rule>
+
+    <!-- 120-char soft / 140-char hard so docblocks and long route definitions fit. -->
+    <rule ref="Generic.Files.LineLength">
+        <properties>
+            <property name="lineLimit" value="120"/>
+            <property name="absoluteLineLimit" value="140"/>
+            <property name="ignoreComments" value="true"/>
+        </properties>
+    </rule>
+
+    <!-- Migrations use anonymous classes returning new class extends Migration{} — phpcs is happy as long as PSR-12 spacing is intact. -->
+</ruleset>

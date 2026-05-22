@@ -1,0 +1,26 @@
+{
+  "protocol": "CV200",
+  "device_imei": "863725041234567",
+  "vehicle_id": "LV-1234",
+  "event_id": "evt_20260512_00001",
+  "event_type": "harsh_braking",
+  "timestamp": "2026-05-12T10:15:30Z",
+  "gps": {
+    "lat": 56.9496,
+    "lng": 24.1052,
+    "speed": 74,
+    "heading": 182
+  },
+  "camera": {
+    "channel": 2,
+    "media_type": "video",
+    "file_name": "20260512_101530_CH2.mp4",
+    "duration_seconds": 18,
+    "codec": "h264"
+  },
+  "meta": {
+    "ignition": true,
+    "driver_id": "D-10045",
+    "firmware": "1.4.22"
+  }
+}
