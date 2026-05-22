@@ -23,19 +23,19 @@ final readonly class HowenEventFactory implements IncomingEventFactoryInterface
 
     /** @var array<string, string> */
     private const RULES = [
-        'imei' => 'required|string|max:32',
-        'plate' => 'required|string|max:64',
-        'alarmCode' => 'required|string|max:32',
-        'alarmTime' => 'required|integer',
-        'location' => 'required|array',
-        'location.latitude' => 'required|numeric',
+        'imei'               => 'required|string|max:32',
+        'plate'              => 'required|string|max:64',
+        'alarmCode'          => 'required|string|max:32',
+        'alarmTime'          => 'required|integer',
+        'location'           => 'required|array',
+        'location.latitude'  => 'required|numeric',
         'location.longitude' => 'required|numeric',
-        'location.speedKmh' => 'nullable|numeric',
-        'video' => 'nullable|array',
-        'video.name' => 'required_with:video|string',
-        'video.ch' => 'nullable|integer',
-        'video.len' => 'nullable|integer',
-        'video.format' => 'nullable|string',
+        'location.speedKmh'  => 'nullable|numeric',
+        'video'              => 'nullable|array',
+        'video.name'         => 'required_with:video|string',
+        'video.ch'           => 'nullable|integer',
+        'video.len'          => 'nullable|integer',
+        'video.format'       => 'nullable|string',
     ];
 
     public function __construct(private IncomingEventPayloadValidator $validator)

@@ -22,17 +22,17 @@ class ListVehicleEventsRequest extends FormRequest
 
         return [
             'event_type' => ['nullable', 'string', 'max:64'],
-            'from' => ['nullable', 'date'],
-            'to' => ['nullable', 'date', 'after_or_equal:from'],
-            'has_media' => ['nullable', 'boolean'],
-            'limit' => ['nullable', 'integer', 'min:1', "max:{$maxLimit}"],
+            'from'       => ['nullable', 'date'],
+            'to'         => ['nullable', 'date', 'after_or_equal:from'],
+            'has_media'  => ['nullable', 'boolean'],
+            'limit'      => ['nullable', 'integer', 'min:1', "max:{$maxLimit}"],
         ];
     }
 
     public function toQuery(string $vehicleId): ListVehicleEventsQuery
     {
         $defaultLimit = (int) config('ingestion.query.default_limit', 100);
-        $maxLimit = (int) config('ingestion.query.max_limit', 500);
+        $maxLimit     = (int) config('ingestion.query.max_limit', 500);
 
         return new ListVehicleEventsQuery(
             $vehicleId,
@@ -65,7 +65,7 @@ class ListVehicleEventsRequest extends FormRequest
         }
 
         $hasTimeComponent = preg_match('/[Tt]|\s\d{1,2}:/', $value) === 1;
-        $dt = new DateTimeImmutable($value);
+        $dt               = new DateTimeImmutable($value);
 
         return $hasTimeComponent ? $dt : $dt->setTime(23, 59, 59);
     }

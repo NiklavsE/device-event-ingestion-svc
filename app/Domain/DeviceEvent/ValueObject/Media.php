@@ -64,11 +64,11 @@ final class Media
     public function toArray(): array
     {
         return [
-            'channel' => $this->channel,
-            'file_name' => $this->fileName,
+            'channel'          => $this->channel,
+            'file_name'        => $this->fileName,
             'duration_seconds' => $this->durationSeconds,
-            'codec' => $this->codec,
-            'media_type' => $this->mediaType,
+            'codec'            => $this->codec,
+            'media_type'       => $this->mediaType,
         ];
     }
 }

@@ -34,15 +34,15 @@ final readonly class IncomingEvent
     public function toArray(): array
     {
         return [
-            'protocol' => $this->protocol,
-            'device_imei' => $this->deviceImei->value(),
-            'vehicle_id' => $this->vehicleId->value(),
-            'event_type' => $this->eventType->value(),
+            'protocol'        => $this->protocol,
+            'device_imei'     => $this->deviceImei->value(),
+            'vehicle_id'      => $this->vehicleId->value(),
+            'event_type'      => $this->eventType->value(),
             'event_timestamp' => $this->eventTimestamp->toIso8601(),
-            'latitude' => $this->location->latitude(),
-            'longitude' => $this->location->longitude(),
-            'speed' => $this->location->speed(),
-            'media' => $this->media?->toArray(),
+            'latitude'        => $this->location->latitude(),
+            'longitude'       => $this->location->longitude(),
+            'speed'           => $this->location->speed(),
+            'media'           => $this->media?->toArray(),
         ];
     }
 }

@@ -21,8 +21,8 @@ class BindRequestContextToLogger
     {
         $context = [
             'request_id' => $request->attributes->get(AssignRequestId::ATTRIBUTE),
-            'method' => $request->getMethod(),
-            'path' => $request->path(),
+            'method'     => $request->getMethod(),
+            'path'       => $request->path(),
         ];
 
         if ($request->isJson()) {

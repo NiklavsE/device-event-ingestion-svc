@@ -92,20 +92,20 @@ class HowenEventFactoryTest extends TestCase
     private function validPayload(array $overrides = []): array
     {
         return array_replace_recursive([
-            'protocol' => 'HOWEN',
-            'imei' => '863725041234567',
-            'plate' => 'LV-1234',
+            'protocol'  => 'HOWEN',
+            'imei'      => '863725041234567',
+            'plate'     => 'LV-1234',
             'alarmCode' => 'HB',
             'alarmTime' => 1778580930,
-            'location' => [
-                'latitude' => 56.9496,
+            'location'  => [
+                'latitude'  => 56.9496,
                 'longitude' => 24.1052,
-                'speedKmh' => 74,
+                'speedKmh'  => 74,
             ],
-            'video' => [
-                'ch' => 2,
-                'name' => '20260512_101530_CH2.mp4',
-                'len' => 18,
+            'video'     => [
+                'ch'     => 2,
+                'name'   => '20260512_101530_CH2.mp4',
+                'len'    => 18,
                 'format' => 'h264',
             ],
         ], $overrides);

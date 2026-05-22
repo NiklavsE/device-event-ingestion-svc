@@ -33,7 +33,7 @@ class EloquentDeviceEventMediaModel extends Model
     ];
 
     protected $casts = [
-        'channel' => 'integer',
+        'channel'          => 'integer',
         'duration_seconds' => 'integer',
     ];
 

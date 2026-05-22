@@ -17,8 +17,8 @@ class EventFactoryServiceProvider extends ServiceProvider
      * (2) append it to this list. Nothing else changes.
      */
     private const NORMALIZERS = [
-        CV200EventFactory::class,
-        HowenEventFactory::class,
+                                 CV200EventFactory::class,
+                                 HowenEventFactory::class,
     ];
 
     public function register(): void

@@ -40,4 +40,32 @@
     </rule>
 
     <!-- Migrations use anonymous classes returning new class extends Migration{} — phpcs is happy as long as PSR-12 spacing is intact. -->
+
+    <!--
+        Align consecutive `=` in variable assignments (phpcbf can auto-fix).
+        Tolerates a "padding gap" — if the offset between identifiers is wider
+        than this the alignment is skipped on that block to avoid runaway
+        whitespace.
+    -->
+    <rule ref="Generic.Formatting.MultipleStatementAlignment">
+        <properties>
+            <property name="maxPadding" value="20"/>
+        </properties>
+    </rule>
+
+    <!--
+        Align `=>` in array literals (keys remain at PSR-12 standard
+        indent; we only nudge the arrows). We deliberately do NOT enable
+        `KeyNotAligned` or `ValueNotAligned` from the Squiz suite — those
+        push keys to the opening-bracket column, which produces bizarre
+        indentation when the array is passed inline as a call argument.
+
+        Stock Laravel config files are excluded from this sniff: they
+        ship with the framework un-aligned and the macOS provenance xattr
+        on these files prevents in-place re-writes via phpcbf, so we leave
+        them as-is to avoid diff noise on framework defaults.
+    -->
+    <rule ref="Squiz.Arrays.ArrayDeclaration.DoubleArrowNotAligned">
+        <exclude-pattern>config/*</exclude-pattern>
+    </rule>
 </ruleset>

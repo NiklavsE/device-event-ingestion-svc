@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class AssignRequestId
 {
-    public const HEADER = 'X-Request-Id';
+    public const HEADER    = 'X-Request-Id';
     public const ATTRIBUTE = 'request_id';
 
     public function handle(Request $request, Closure $next): Response

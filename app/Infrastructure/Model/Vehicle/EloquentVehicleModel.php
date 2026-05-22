@@ -19,7 +19,7 @@ class EloquentVehicleModel extends Model
     protected $table = 'vehicles';
 
     protected $fillable = [
-        'external_id',
-        'label',
+                           'external_id',
+                           'label',
     ];
 }

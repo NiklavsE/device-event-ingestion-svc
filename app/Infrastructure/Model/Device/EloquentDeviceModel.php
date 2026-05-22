@@ -23,10 +23,10 @@ class EloquentDeviceModel extends Model
     protected $table = 'devices';
 
     protected $fillable = [
-        'imei',
-        'vehicle_external_id',
-        'firmware',
-        'last_seen_at',
+                           'imei',
+                           'vehicle_external_id',
+                           'firmware',
+                           'last_seen_at',
     ];
 
     protected $casts = [

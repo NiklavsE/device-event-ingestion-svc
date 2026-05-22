@@ -18,7 +18,7 @@ abstract class FeatureTestCase extends TestCase
      * that exercise the not-found paths should NOT call givenDevice() and
      * instead post payloads using a different identifier.
      */
-    protected const DEFAULT_IMEI = '863725041234567';
+    protected const DEFAULT_IMEI       = '863725041234567';
     protected const DEFAULT_VEHICLE_ID = 'LV-1234';
 
     protected function setUp(): void
@@ -49,7 +49,7 @@ abstract class FeatureTestCase extends TestCase
     ): EloquentVehicleModel {
         return EloquentVehicleModel::query()->updateOrCreate(
             ['external_id' => $externalId],
-            ['label' => $label],
+            ['label'       => $label],
         );
     }
 
@@ -68,7 +68,7 @@ abstract class FeatureTestCase extends TestCase
         $this->givenVehicle($vehicleExternalId);
 
         return EloquentDeviceModel::query()->firstOrCreate(
-            ['imei' => $imei],
+            ['imei'                => $imei],
             ['vehicle_external_id' => $vehicleExternalId],
         );
     }
@@ -82,7 +82,7 @@ abstract class FeatureTestCase extends TestCase
     {
         return $this->withHeaders(array_merge([
             'X-Api-Key' => 'test-api-key',
-            'Accept' => 'application/json',
+            'Accept'    => 'application/json',
         ], $headers))->postJson('/api/v1/device-events', $payload);
     }
 }

@@ -23,22 +23,22 @@ final readonly class CV200EventFactory implements IncomingEventFactoryInterface
 
     /** @var array<string, string> */
     private const RULES = [
-        'device_imei' => 'required|string|max:32',
-        'vehicle_id' => 'required|string|max:64',
-        'event_id' => 'required|string|max:128',
-        'event_type' => 'required|string|max:64',
-        'timestamp' => 'required|string',
-        'gps' => 'required|array',
-        'gps.lat' => 'required|numeric',
-        'gps.lng' => 'required|numeric',
-        'gps.speed' => 'nullable|numeric',
-        'gps.heading' => 'nullable|integer',
-        'camera' => 'nullable|array',
-        'camera.file_name' => 'required_with:camera|string',
-        'camera.channel' => 'nullable|integer',
+        'device_imei'             => 'required|string|max:32',
+        'vehicle_id'              => 'required|string|max:64',
+        'event_id'                => 'required|string|max:128',
+        'event_type'              => 'required|string|max:64',
+        'timestamp'               => 'required|string',
+        'gps'                     => 'required|array',
+        'gps.lat'                 => 'required|numeric',
+        'gps.lng'                 => 'required|numeric',
+        'gps.speed'               => 'nullable|numeric',
+        'gps.heading'             => 'nullable|integer',
+        'camera'                  => 'nullable|array',
+        'camera.file_name'        => 'required_with:camera|string',
+        'camera.channel'          => 'nullable|integer',
         'camera.duration_seconds' => 'nullable|integer',
-        'camera.codec' => 'nullable|string',
-        'camera.media_type' => 'nullable|string',
+        'camera.codec'            => 'nullable|string',
+        'camera.media_type'       => 'nullable|string',
     ];
 
     public function __construct(private IncomingEventPayloadValidator $validator)
