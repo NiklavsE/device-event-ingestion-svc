@@ -6,23 +6,12 @@ namespace DeviceEventIngestionService\Domain\DeviceEvent\ValueObject;
 
 use DeviceEventIngestionService\Domain\DeviceEvent\Exception\InvalidValueObjectException;
 
-/**
- * Stable fingerprint for an event. Two payloads referring to the same
- * device-event must produce the same DedupHash; different events must
- * produce different hashes.
- *
- * Built per protocol — see EventFactoryInterface implementations.
- */
 final class DedupHash
 {
     private function __construct(private readonly string $value)
     {
     }
 
-    /**
-     * Build a hash from a set of identifying parts. Parts are joined
-     * with `|` to keep boundaries unambiguous and hashed with SHA-256.
-     */
     public static function fromParts(string ...$parts): self
     {
         foreach ($parts as $part) {

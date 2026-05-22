@@ -11,15 +11,7 @@ use Illuminate\Support\ServiceProvider;
 
 class EventFactoryServiceProvider extends ServiceProvider
 {
-    /**
-     * Register every supported protocol normalizer here. Adding a new
-     * protocol means: (1) write a class implementing EventFactoryInterface,
-     * (2) append it to this list. Nothing else changes.
-     */
-    private const NORMALIZERS = [
-                                 CV200EventFactory::class,
-                                 HowenEventFactory::class,
-    ];
+    private const NORMALIZERS = [CV200EventFactory::class, HowenEventFactory::class];
 
     public function register(): void
     {
