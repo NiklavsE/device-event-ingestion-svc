@@ -19,9 +19,9 @@ The service exposes a searchable event API that supports filtering by various pr
 ```bash
 cp .env.example .env
 docker compose build
-docker compose run --rm app composer install
-docker compose up -d                           # starts mysql + redis + app + nginx + worker
-docker compose exec app php artisan key:generate
+docker compose run --rm app composer install            # populates the vendor volume
+docker compose run --rm -u 0 app php artisan key:generate  # writes APP_KEY into .env (needs root to touch the host file)
+docker compose up -d                                    # starts mysql + redis + app + nginx + worker
 docker compose exec app php artisan migrate
 docker compose exec app php artisan ingestion:seed-fleet
 # Service is now on http://localhost:8000
@@ -35,12 +35,18 @@ Try the sample payloads:
 ./examples/curl-examples.sh
 ```
 
-Run the test suite:
+Run the test suite (inside the container — `vendor/` lives in a Docker volume):
 
 ```bash
 docker compose exec app vendor/bin/phpunit
-# or, if you happen to have PHP 8.5+ and Composer 2 on the host:
-vendor/bin/phpunit
+```
+
+Logs live in the `storage-data` volume rather than on the host. Tail them with:
+
+```bash
+docker compose logs -f app worker
+# or, for the Laravel file log specifically:
+docker compose exec app tail -f storage/logs/laravel.log
 ```
 
 ---
@@ -181,7 +187,7 @@ Things to consider before production, given the current assignment's requirement
   3. Partition the queue by IMEI hash so a hot device doesn't starve others.
 - **MySQL.** Partition `device_events` by timestamps (e.g. monthly) for cheap `DROP PARTITION` retention and smaller per-partition indexes. Read replica for the query API.
 - **Observability.** Request-id middleware already tags every log line. Adding telemetry and dashboards for ingestion lag / dedup hit ratio / per-protocol error rates.
-- **Docker setup.** Hardening of the Docker setup. For the sake of this assignment a few liberties were taken in the configuration and setup.
+- **Docker setup.** Hardening of the Docker setup. For the sake of this assignment, a "good enough" approach was taken.
 
 ## Bonus points
 
