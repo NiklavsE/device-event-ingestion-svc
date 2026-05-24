@@ -65,7 +65,7 @@ Assumptions made:
 - Vehicle plate number is unique and used as the PK of the `vehicles` table.
 
 Trade-offs made:
-- DDD layout: overkill for two protocols, but makes "where do I put protocol #3?" obvious.
+- DDD layout: overkill for two protocols, but makes "where do I put protocol #3?" obvious. Service fights against Laravel which causes friction.
 - A single static API key is used for auth; a real credential provider can be plugged in later.
 - Rate limiting reaches into the request body for `imei`/`device_imei`, so new protocols may need their IMEI field plumbed in.
 - Database was used for queue backend. While redis-based one was evaluated, database approach was selected as the "good enough" approach for the task
