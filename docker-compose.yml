@@ -8,6 +8,9 @@ services:
     working_dir: /var/www/html
     volumes:
       - .:/var/www/html
+      - storage-data:/var/www/html/storage
+      - bootstrap-cache:/var/www/html/bootstrap/cache
+      - vendor-data:/var/www/html/vendor
     environment:
       - APP_ENV=local
       - DB_HOST=mysql
@@ -39,6 +42,9 @@ services:
     working_dir: /var/www/html
     volumes:
       - .:/var/www/html
+      - storage-data:/var/www/html/storage
+      - bootstrap-cache:/var/www/html/bootstrap/cache
+      - vendor-data:/var/www/html/vendor
     command: php artisan queue:work database --tries=3 --backoff=5 --sleep=1
     environment:
       - APP_ENV=local
@@ -79,3 +85,6 @@ services:
 volumes:
   mysql-data:
   redis-data:
+  storage-data:
+  bootstrap-cache:
+  vendor-data:
