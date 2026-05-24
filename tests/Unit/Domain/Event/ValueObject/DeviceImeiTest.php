@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Domain\Event\ValueObject;
 
+use DeviceEventIngestionService\Domain\Device\ValueObject\DeviceImei;
 use DeviceEventIngestionService\Domain\DeviceEvent\Exception\InvalidValueObjectException;
-use DeviceEventIngestionService\Domain\DeviceEvent\ValueObject\DeviceImei;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 

@@ -8,6 +8,7 @@ use DeviceEventIngestionService\Application\Services\ListVehicleEvents\ListVehic
 use DeviceEventIngestionService\Ui\Http\Requests\ListVehicleEventsRequest;
 use DeviceEventIngestionService\Ui\Http\Resources\DeviceEventResource;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 readonly class VehicleEventsController
 {
@@ -17,14 +18,22 @@ readonly class VehicleEventsController
 
     public function __invoke(ListVehicleEventsRequest $request, string $vehicleId): JsonResponse
     {
-        $events = $this->handler->execute($request->toQuery($vehicleId));
+        $page = $this->handler->execute($request->toQuery($vehicleId));
 
-        return DeviceEventResource::collection($events)
+        $paginator = new LengthAwarePaginator(
+            $page->items,
+            $page->total,
+            $page->perPage,
+            $page->page,
+            [
+                'path'  => $request->url(),
+                'query' => $request->query(),
+            ],
+        );
+
+        return DeviceEventResource::collection($paginator)
             ->additional([
-                'meta' => [
-                    'vehicle_id' => $vehicleId,
-                    'count'      => count($events),
-                ],
+                'meta' => ['vehicle_id' => $vehicleId],
             ])
             ->response();
     }

@@ -6,10 +6,10 @@ namespace DeviceEventIngestionService\Domain\Device;
 
 use DateTimeImmutable;
 use DeviceEventIngestionService\Domain\Device\Exception\VehicleMismatchException;
+use DeviceEventIngestionService\Domain\Device\ValueObject\DeviceImei;
 use DeviceEventIngestionService\Domain\DeviceEvent\DeviceEvent;
-use DeviceEventIngestionService\Domain\DeviceEvent\ValueObject\DeviceImei;
-use DeviceEventIngestionService\Domain\DeviceEvent\ValueObject\VehicleId;
 use DeviceEventIngestionService\Domain\DeviceEvent\IncomingEvent;
+use DeviceEventIngestionService\Domain\Vehicle\VehicleId;
 
 final class Device
 {

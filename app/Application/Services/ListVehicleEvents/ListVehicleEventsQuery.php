@@ -15,6 +15,7 @@ final readonly class ListVehicleEventsQuery
         public ?DateTimeImmutable $to = null,
         public ?bool $hasMedia = null,
         public int $limit = 100,
+        public int $page = 1,
     ) {
     }
 }

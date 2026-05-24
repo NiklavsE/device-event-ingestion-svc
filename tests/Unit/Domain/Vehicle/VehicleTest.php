@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Domain\Vehicle;
 
-use DeviceEventIngestionService\Domain\DeviceEvent\ValueObject\VehicleId;
 use DeviceEventIngestionService\Domain\Vehicle\Vehicle;
+use DeviceEventIngestionService\Domain\Vehicle\VehicleId;
 use PHPUnit\Framework\TestCase;
 
 class VehicleTest extends TestCase

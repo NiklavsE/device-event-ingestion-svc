@@ -5,6 +5,7 @@ declare(strict_types=1);
 use DeviceEventIngestionService\Ui\Http\Middleware\ApiKeyAuth;
 use DeviceEventIngestionService\Ui\Http\Middleware\AssignRequestId;
 use DeviceEventIngestionService\Ui\Http\Middleware\BindRequestContextToLogger;
+use DeviceEventIngestionService\Ui\Http\Middleware\ThrottleIngestion;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -23,9 +24,13 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->alias([
-            'api.key' => ApiKeyAuth::class,
+            'api.key'            => ApiKeyAuth::class,
+            'ingestion.throttle' => ThrottleIngestion::class,
         ]);
     })
+    ->withCommands([
+        __DIR__ . '/../app/Ui/Console/Commands',
+    ])
     ->withExceptions(function (Exceptions $exceptions) {
     })
     ->create();

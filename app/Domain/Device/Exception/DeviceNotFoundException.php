@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace DeviceEventIngestionService\Domain\Device\Exception;
 
-use DeviceEventIngestionService\Domain\DeviceEvent\ValueObject\DeviceImei;
+use DeviceEventIngestionService\Domain\Device\ValueObject\DeviceImei;
 use RuntimeException;
 
 final class DeviceNotFoundException extends RuntimeException

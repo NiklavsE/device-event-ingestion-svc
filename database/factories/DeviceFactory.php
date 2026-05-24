@@ -21,7 +21,6 @@ class DeviceFactory extends Factory
         return [
             'imei'                => $this->fakeImei(),
             'vehicle_external_id' => fn (): string => VehicleFactory::new()->create()->external_id,
-            'firmware'            => null,
             'last_seen_at'        => null,
         ];
     }

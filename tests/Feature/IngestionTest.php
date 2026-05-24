@@ -112,4 +112,39 @@ class IngestionTest extends FeatureTestCase
 
         Queue::assertPushed(IngestDeviceEventJob::class);
     }
+
+    public function testRateLimitsOnceTheConfiguredPerMinuteCeilingIsExceeded(): void
+    {
+        config()->set('ingestion.rate_limit.per_minute', 2);
+
+        $this->postEvent($this->cv200Payload())->assertNoContent(202);
+        $this->postEvent($this->cv200Payload())->assertNoContent(202);
+        $this->postEvent($this->cv200Payload())->assertStatus(429);
+
+        Queue::assertPushed(IngestDeviceEventJob::class, 2);
+    }
+
+    public function testRateLimitIsBucketedPerImei(): void
+    {
+        config()->set('ingestion.rate_limit.per_minute', 1);
+
+        $this->postEvent($this->cv200Payload(['device_imei' => '863725041234567']))->assertNoContent(202);
+        $this->postEvent($this->cv200Payload(['device_imei' => '863725041234567']))->assertStatus(429);
+
+        $this->postEvent($this->cv200Payload(['device_imei' => '863725049999999']))->assertNoContent(202);
+
+        Queue::assertPushed(IngestDeviceEventJob::class, 2);
+    }
+
+    public function testHowenPayloadIsBucketedByItsTopLevelImeiField(): void
+    {
+        config()->set('ingestion.rate_limit.per_minute', 1);
+
+        $this->postEvent($this->howenPayload(['imei' => '863725041234567']))->assertNoContent(202);
+        $this->postEvent($this->howenPayload(['imei' => '863725041234567']))->assertStatus(429);
+
+        $this->postEvent($this->howenPayload(['imei' => '863725049999999']))->assertNoContent(202);
+
+        Queue::assertPushed(IngestDeviceEventJob::class, 2);
+    }
 }

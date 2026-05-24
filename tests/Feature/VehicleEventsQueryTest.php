@@ -7,6 +7,7 @@ namespace Tests\Feature;
 use Database\Factories\DeviceEventFactory;
 use DeviceEventIngestionService\Infrastructure\Model\Device\EloquentDeviceModel;
 use DeviceEventIngestionService\Infrastructure\Model\Event\EloquentDeviceEventModel;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Tests\FeatureTestCase;
 
 class VehicleEventsQueryTest extends FeatureTestCase
@@ -38,33 +39,11 @@ class VehicleEventsQueryTest extends FeatureTestCase
 
         $this->getEvents('LV-1234')
             ->assertStatus(200)
-            ->assertExactJson([
-                'data' => [
-                    [
-                        'id'              => $event->id,
-                        'protocol'        => 'CV200',
-                        'device_imei'     => '863725041234567',
-                        'vehicle_id'      => 'LV-1234',
-                        'event_type'      => 'harsh_braking',
-                        'event_timestamp' => '2026-05-12T10:15:30Z',
-                        'latitude'        => 56.9496,
-                        'longitude'       => 24.1052,
-                        'speed'           => 74.0,
-                        'heading'         => 182,
-                        'media'           => [
-                            'channel'          => 2,
-                            'file_name'        => '20260512_101530_CH2.mp4',
-                            'duration_seconds' => 18,
-                            'codec'            => 'h264',
-                            'media_type'       => 'video',
-                        ],
-                    ],
-                ],
-                'meta' => [
-                    'vehicle_id' => 'LV-1234',
-                    'count'      => 1,
-                ],
-            ]);
+            ->assertExactJson($this->expectedResponse(
+                vehicleId: 'LV-1234',
+                rows: [$this->expectedEventJson($event)],
+                total: 1,
+            ));
     }
 
     public function testReturnsEventsForTheVehicleInDescendingOrder(): void
@@ -75,17 +54,15 @@ class VehicleEventsQueryTest extends FeatureTestCase
 
         $this->getEvents('LV-1234')
             ->assertStatus(200)
-            ->assertExactJson([
-                'data' => [
+            ->assertExactJson($this->expectedResponse(
+                vehicleId: 'LV-1234',
+                rows: [
                     $this->expectedEventJson($event3),
                     $this->expectedEventJson($event2),
                     $this->expectedEventJson($event1),
                 ],
-                'meta' => [
-                    'vehicle_id' => 'LV-1234',
-                    'count'      => 3,
-                ],
-            ]);
+                total: 3,
+            ));
     }
 
     public function testFiltersByEventType(): void
@@ -95,10 +72,12 @@ class VehicleEventsQueryTest extends FeatureTestCase
 
         $this->getEvents('LV-1234', ['event_type' => 'speeding'])
             ->assertStatus(200)
-            ->assertExactJson([
-                'data' => [$this->expectedEventJson($matching)],
-                'meta' => ['vehicle_id' => 'LV-1234', 'count' => 1],
-            ]);
+            ->assertExactJson($this->expectedResponse(
+                vehicleId: 'LV-1234',
+                rows: [$this->expectedEventJson($matching)],
+                total: 1,
+                query: ['event_type' => 'speeding'],
+            ));
     }
 
     public function testFiltersByFromAndTo(): void
@@ -109,10 +88,12 @@ class VehicleEventsQueryTest extends FeatureTestCase
 
         $this->getEvents('LV-1234', ['from' => '2026-05-01', 'to' => '2026-05-31'])
             ->assertStatus(200)
-            ->assertExactJson([
-                'data' => [$this->expectedEventJson($inRange)],
-                'meta' => ['vehicle_id' => 'LV-1234', 'count' => 1],
-            ]);
+            ->assertExactJson($this->expectedResponse(
+                vehicleId: 'LV-1234',
+                rows: [$this->expectedEventJson($inRange)],
+                total: 1,
+                query: ['from' => '2026-05-01', 'to' => '2026-05-31'],
+            ));
     }
 
     public function testFiltersByHasMedia(): void
@@ -125,17 +106,21 @@ class VehicleEventsQueryTest extends FeatureTestCase
 
         $this->getEvents('LV-1234', ['has_media' => '1'])
             ->assertStatus(200)
-            ->assertExactJson([
-                'data' => [$this->expectedEventJson($withMedia)],
-                'meta' => ['vehicle_id' => 'LV-1234', 'count' => 1],
-            ]);
+            ->assertExactJson($this->expectedResponse(
+                vehicleId: 'LV-1234',
+                rows: [$this->expectedEventJson($withMedia)],
+                total: 1,
+                query: ['has_media' => '1'],
+            ));
 
         $this->getEvents('LV-1234', ['has_media' => '0'])
             ->assertStatus(200)
-            ->assertExactJson([
-                'data' => [$this->expectedEventJson($withoutMedia)],
-                'meta' => ['vehicle_id' => 'LV-1234', 'count' => 1],
-            ]);
+            ->assertExactJson($this->expectedResponse(
+                vehicleId: 'LV-1234',
+                rows: [$this->expectedEventJson($withoutMedia)],
+                total: 1,
+                query: ['has_media' => '0'],
+            ));
     }
 
     public function testRespectsLimitWithHardCap(): void
@@ -146,28 +131,63 @@ class VehicleEventsQueryTest extends FeatureTestCase
             ->sequence(fn ($s) => ['event_timestamp' => sprintf('2026-05-%02dT10:00:00Z', $s->index + 1)])
             ->create();
 
-        // Latest first, capped at 2 by the limit query param.
-        $expectedSlice = [
-            $this->expectedEventJson($events[4]),
-            $this->expectedEventJson($events[3]),
-        ];
-
         $this->getEvents('LV-1234', ['limit' => 2])
             ->assertStatus(200)
-            ->assertExactJson([
-                'data' => $expectedSlice,
-                'meta' => ['vehicle_id' => 'LV-1234', 'count' => 2],
-            ]);
+            ->assertExactJson($this->expectedResponse(
+                vehicleId: 'LV-1234',
+                rows: [
+                    $this->expectedEventJson($events[4]),
+                    $this->expectedEventJson($events[3]),
+                ],
+                total: 5,
+                perPage: 2,
+                query: ['limit' => '2'],
+            ));
+    }
+
+    public function testPaginatesAcrossPages(): void
+    {
+        $events = DeviceEventFactory::new()
+            ->forDevice($this->device)
+            ->count(5)
+            ->sequence(fn ($s) => ['event_timestamp' => sprintf('2026-05-%02dT10:00:00Z', $s->index + 1)])
+            ->create();
+
+        $this->getEvents('LV-1234', ['limit' => 2, 'page' => 2])
+            ->assertStatus(200)
+            ->assertExactJson($this->expectedResponse(
+                vehicleId: 'LV-1234',
+                rows: [
+                    $this->expectedEventJson($events[2]),
+                    $this->expectedEventJson($events[1]),
+                ],
+                total: 5,
+                perPage: 2,
+                currentPage: 2,
+                query: ['limit' => '2', 'page' => '2'],
+            ));
+
+        $this->getEvents('LV-1234', ['limit' => 2, 'page' => 3])
+            ->assertStatus(200)
+            ->assertExactJson($this->expectedResponse(
+                vehicleId: 'LV-1234',
+                rows: [$this->expectedEventJson($events[0])],
+                total: 5,
+                perPage: 2,
+                currentPage: 3,
+                query: ['limit' => '2', 'page' => '3'],
+            ));
     }
 
     public function testReturnsEmptyForUnknownVehicle(): void
     {
         $this->getEvents('UNKNOWN')
             ->assertStatus(200)
-            ->assertExactJson([
-                'data' => [],
-                'meta' => ['vehicle_id' => 'UNKNOWN', 'count' => 0],
-            ]);
+            ->assertExactJson($this->expectedResponse(
+                vehicleId: 'UNKNOWN',
+                rows: [],
+                total: 0,
+            ));
     }
 
     public function testRejectsInvalidDate(): void
@@ -175,6 +195,13 @@ class VehicleEventsQueryTest extends FeatureTestCase
         $this->getEvents('LV-1234', ['from' => 'not-a-date'])
             ->assertStatus(422)
             ->assertJsonValidationErrors('from');
+    }
+
+    public function testRejectsInvalidPage(): void
+    {
+        $this->getEvents('LV-1234', ['page' => 0])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('page');
     }
 
     /**
@@ -199,6 +226,53 @@ class VehicleEventsQueryTest extends FeatureTestCase
                 'duration_seconds' => $event->media->duration_seconds,
                 'codec'            => $event->media->codec,
                 'media_type'       => $event->media->media_type,
+            ],
+        ];
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $rows
+     * @param array<string, scalar> $query
+     * @return array<string, mixed>
+     */
+    private function expectedResponse(
+        string $vehicleId,
+        array $rows,
+        int $total,
+        int $perPage = 100,
+        int $currentPage = 1,
+        array $query = [],
+    ): array {
+        $path = url("/api/v1/vehicles/{$vehicleId}/events");
+
+        $paginator = new LengthAwarePaginator(
+            $rows,
+            $total,
+            $perPage,
+            $currentPage,
+            ['path' => $path, 'query' => $query],
+        );
+
+        $arr = $paginator->toArray();
+
+        return [
+            'data'  => $rows,
+            'links' => [
+                'first' => $arr['first_page_url'],
+                'last'  => $arr['last_page_url'],
+                'prev'  => $arr['prev_page_url'],
+                'next'  => $arr['next_page_url'],
+            ],
+            'meta'  => [
+                'current_page' => $arr['current_page'],
+                'from'         => $arr['from'],
+                'last_page'    => $arr['last_page'],
+                'links'        => $arr['links'],
+                'path'         => $arr['path'],
+                'per_page'     => $arr['per_page'],
+                'to'           => $arr['to'],
+                'total'        => $arr['total'],
+                'vehicle_id'   => $vehicleId,
             ],
         ];
     }

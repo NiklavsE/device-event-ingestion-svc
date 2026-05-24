@@ -4,17 +4,18 @@ declare(strict_types=1);
 
 namespace DeviceEventIngestionService\Infrastructure\Model\Event;
 
+use DeviceEventIngestionService\Domain\Device\ValueObject\DeviceImei;
 use DeviceEventIngestionService\Domain\DeviceEvent\DeviceEvent;
 use DeviceEventIngestionService\Domain\DeviceEvent\Exception\DeviceEventAlreadyExists;
 use DeviceEventIngestionService\Domain\DeviceEvent\Interface\DeviceEventRepositoryInterface;
+use DeviceEventIngestionService\Domain\DeviceEvent\Queries\EventPage;
 use DeviceEventIngestionService\Domain\DeviceEvent\Queries\VehicleEventQuery;
 use DeviceEventIngestionService\Domain\DeviceEvent\ValueObject\DedupHash;
-use DeviceEventIngestionService\Domain\DeviceEvent\ValueObject\DeviceImei;
 use DeviceEventIngestionService\Domain\DeviceEvent\ValueObject\EventTimestamp;
 use DeviceEventIngestionService\Domain\DeviceEvent\ValueObject\EventType;
 use DeviceEventIngestionService\Domain\DeviceEvent\ValueObject\GeoPoint;
 use DeviceEventIngestionService\Domain\DeviceEvent\ValueObject\Media;
-use DeviceEventIngestionService\Domain\DeviceEvent\ValueObject\VehicleId;
+use DeviceEventIngestionService\Domain\Vehicle\VehicleId;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 
@@ -58,9 +59,9 @@ final class EloquentDeviceEventRepository implements DeviceEventRepositoryInterf
         });
     }
 
-    public function ofVehicleQuery(VehicleEventQuery $criteria): array
+    public function ofVehicleQuery(VehicleEventQuery $criteria): EventPage
     {
-        $rows = EloquentDeviceEventModel::query()
+        $paginator = EloquentDeviceEventModel::query()
             ->with(['media'])
             ->select(['device_events.*', 'devices.imei as device_imei'])
             ->join('devices', 'devices.id', '=', 'device_events.device_id')
@@ -75,11 +76,14 @@ final class EloquentDeviceEventRepository implements DeviceEventRepositoryInterf
             ->when($criteria->hasMedia === false, fn ($q) => $q->whereDoesntHave('media'))
             ->orderByDesc('event_timestamp')
             ->orderByDesc('device_events.id')
-            ->limit($criteria->limit)
-            ->get()
-            ->all();
+            ->paginate(perPage: $criteria->limit, page: $criteria->page);
 
-        return array_map($this->toDomain(...), $rows);
+        return new EventPage(
+            items: array_map($this->toDomain(...), $paginator->items()),
+            total: $paginator->total(),
+            page: $paginator->currentPage(),
+            perPage: $paginator->perPage(),
+        );
     }
 
     private function toDomain(EloquentDeviceEventModel $row): DeviceEvent

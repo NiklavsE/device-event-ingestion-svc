@@ -27,6 +27,7 @@ class ListVehicleEventsRequest extends FormRequest
             'to'         => ['nullable', 'date_format:Y-m-d', 'after_or_equal:from'],
             'has_media'  => ['nullable', 'boolean'],
             'limit'      => ['nullable', 'integer', 'min:1', "max:{$maxLimit}"],
+            'page'       => ['nullable', 'integer', 'min:1'],
         ];
     }
 
@@ -42,6 +43,7 @@ class ListVehicleEventsRequest extends FormRequest
             $this->parseDate($this->input('to'), endOfDay: true),
             $this->has('has_media') ? $this->boolean('has_media') : null,
             min((int) ($this->input('limit', $defaultLimit)), $maxLimit),
+            max(1, (int) $this->input('page', 1)),
         );
     }
 

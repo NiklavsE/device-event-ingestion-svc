@@ -7,6 +7,7 @@ namespace DeviceEventIngestionService\Infrastructure\Model\Event;
 use DeviceEventIngestionService\Domain\DeviceEvent\DeviceEvent;
 use DeviceEventIngestionService\Domain\DeviceEvent\Exception\DeviceEventAlreadyExists;
 use DeviceEventIngestionService\Domain\DeviceEvent\Interface\DeviceEventRepositoryInterface;
+use DeviceEventIngestionService\Domain\DeviceEvent\Queries\EventPage;
 use DeviceEventIngestionService\Domain\DeviceEvent\Queries\VehicleEventQuery;
 use Illuminate\Contracts\Cache\Repository as CacheRepository;
 
@@ -39,7 +40,7 @@ final readonly class CachingDeviceEventRepository implements DeviceEventReposito
         }
     }
 
-    public function ofVehicleQuery(VehicleEventQuery $criteria): array
+    public function ofVehicleQuery(VehicleEventQuery $criteria): EventPage
     {
         return $this->inner->ofVehicleQuery($criteria);
     }

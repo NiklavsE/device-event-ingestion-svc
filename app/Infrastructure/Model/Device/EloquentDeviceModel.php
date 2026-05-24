@@ -13,7 +13,6 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property string $imei
  * @property string $vehicle_external_id
- * @property string|null $firmware
  * @property Carbon|null $last_seen_at
  * @property Carbon $created_at
  * @property Carbon $updated_at
@@ -25,7 +24,6 @@ class EloquentDeviceModel extends Model
     protected $fillable = [
         'imei',
         'vehicle_external_id',
-        'firmware',
         'last_seen_at',
     ];
 

@@ -7,8 +7,8 @@ namespace DeviceEventIngestionService\Infrastructure\Model\Device;
 use DeviceEventIngestionService\Domain\Device\Device;
 use DeviceEventIngestionService\Domain\Device\Exception\DeviceNotFoundException;
 use DeviceEventIngestionService\Domain\Device\Interface\DeviceRepositoryInterface;
-use DeviceEventIngestionService\Domain\DeviceEvent\ValueObject\DeviceImei;
-use DeviceEventIngestionService\Domain\DeviceEvent\ValueObject\VehicleId;
+use DeviceEventIngestionService\Domain\Device\ValueObject\DeviceImei;
+use DeviceEventIngestionService\Domain\Vehicle\VehicleId;
 use Illuminate\Support\Carbon;
 
 final class EloquentDeviceRepository implements DeviceRepositoryInterface
@@ -46,9 +46,6 @@ final class EloquentDeviceRepository implements DeviceRepositoryInterface
             return;
         }
 
-        // Direct UPDATE by primary key — no SELECT round-trip. The cost of
-        // skipping isDirty() is one redundant UPDATE per ingestion that
-        // didn't advance last_seen_at (older-than-current events only).
         EloquentDeviceModel::query()
             ->whereKey($device->id())
             ->update([

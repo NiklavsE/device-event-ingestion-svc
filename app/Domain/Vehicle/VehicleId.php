@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace DeviceEventIngestionService\Domain\DeviceEvent\ValueObject;
+namespace DeviceEventIngestionService\Domain\Vehicle;
 
 use DeviceEventIngestionService\Domain\DeviceEvent\Exception\InvalidValueObjectException;
 
-final readonly class DeviceImei
+final readonly class VehicleId
 {
     private function __construct(private string $value)
     {
@@ -15,8 +15,8 @@ final readonly class DeviceImei
     public static function fromString(string $value): self
     {
         $trimmed = trim($value);
-        if ($trimmed === '' || 1 !== preg_match('/^[0-9]{14,17}$/', $trimmed)) {
-            throw new InvalidValueObjectException("Invalid IMEI: {$value}");
+        if ($trimmed === '' || strlen($trimmed) > 64) {
+            throw new InvalidValueObjectException('Vehicle id must be a non-empty string up to 64 chars');
         }
 
         return new self($trimmed);

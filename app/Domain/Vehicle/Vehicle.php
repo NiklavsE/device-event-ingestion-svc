@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace DeviceEventIngestionService\Domain\Vehicle;
 
-use DeviceEventIngestionService\Domain\DeviceEvent\ValueObject\VehicleId;
-
 final readonly class Vehicle
 {
     public function __construct(

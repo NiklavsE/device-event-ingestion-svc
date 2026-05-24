@@ -7,13 +7,13 @@ namespace Tests\Unit\Domain\Device;
 use DateTimeImmutable;
 use DeviceEventIngestionService\Domain\Device\Device;
 use DeviceEventIngestionService\Domain\Device\Exception\VehicleMismatchException;
+use DeviceEventIngestionService\Domain\Device\ValueObject\DeviceImei;
+use DeviceEventIngestionService\Domain\DeviceEvent\IncomingEvent;
 use DeviceEventIngestionService\Domain\DeviceEvent\ValueObject\DedupHash;
-use DeviceEventIngestionService\Domain\DeviceEvent\ValueObject\DeviceImei;
 use DeviceEventIngestionService\Domain\DeviceEvent\ValueObject\EventTimestamp;
 use DeviceEventIngestionService\Domain\DeviceEvent\ValueObject\EventType;
 use DeviceEventIngestionService\Domain\DeviceEvent\ValueObject\GeoPoint;
-use DeviceEventIngestionService\Domain\DeviceEvent\ValueObject\VehicleId;
-use DeviceEventIngestionService\Domain\DeviceEvent\IncomingEvent;
+use DeviceEventIngestionService\Domain\Vehicle\VehicleId;
 use PHPUnit\Framework\TestCase;
 
 class DeviceTest extends TestCase

@@ -21,10 +21,10 @@ final readonly class DeviceEventIngestionService
     ) {
     }
 
-    public function execute(DeviceEventIngestionCommand $request): void
+    public function execute(DeviceEventIngestionCommand $command): void
     {
         try {
-            $incoming = $this->factories->resolve($request->protocol)->create($request->payload);
+            $incoming = $this->factories->resolve($command->protocol)->create($command->payload);
             $device   = $this->devices->ofImei($incoming->deviceImei);
             $event    = $device->recordEvent($incoming);
 
@@ -32,12 +32,12 @@ final readonly class DeviceEventIngestionService
             $this->devices->save($device);
         } catch (DeviceEventAlreadyExists $e) {
             $this->logger->info('device_event.duplicate', [
-                'protocol'   => $request->protocol,
+                'protocol'   => $command->protocol,
                 'dedup_hash' => $e->dedupHash->value(),
             ]);
         } catch (Throwable $e) {
             $this->logger->error('device_event.ingest_failed', [
-                'protocol'  => $request->protocol,
+                'protocol'  => $command->protocol,
                 'exception' => $e::class,
                 'message'   => $e->getMessage(),
             ]);
