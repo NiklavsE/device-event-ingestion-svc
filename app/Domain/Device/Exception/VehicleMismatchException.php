@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace DeviceEventIngestionService\Domain\Device\Exception;
 
-use DeviceEventIngestionService\Domain\DeviceEvent\ValueObject\DeviceImei;
-use DeviceEventIngestionService\Domain\DeviceEvent\ValueObject\VehicleId;
+use DeviceEventIngestionService\Domain\Device\ValueObject\DeviceImei;
+use DeviceEventIngestionService\Domain\Vehicle\VehicleId;
 use RuntimeException;
 
 final class VehicleMismatchException extends RuntimeException

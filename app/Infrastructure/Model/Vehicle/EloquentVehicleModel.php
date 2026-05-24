@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
 /**
- * @property int $id
  * @property string $external_id
  * @property string|null $label
  * @property Carbon $created_at
@@ -17,6 +16,12 @@ use Illuminate\Support\Carbon;
 class EloquentVehicleModel extends Model
 {
     protected $table = 'vehicles';
+
+    protected $primaryKey = 'external_id';
+
+    protected $keyType = 'string';
+
+    public $incrementing = false;
 
     protected $fillable = ['external_id', 'label'];
 }

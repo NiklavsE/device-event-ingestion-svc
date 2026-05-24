@@ -22,6 +22,7 @@
     <rule ref="PSR12">
         <!-- Allow short closures and arrow functions without surrounding blank lines. -->
         <exclude name="PSR12.Files.FileHeader.SpacingAfterBlock"/>
+        <exclude name="Squiz.Functions.FunctionDeclarationArgumentSpacing.SpacingAfterHint"/>
     </rule>
     <rule ref="PSR12.Files.DeclareStatement">
         <severity>5</severity>

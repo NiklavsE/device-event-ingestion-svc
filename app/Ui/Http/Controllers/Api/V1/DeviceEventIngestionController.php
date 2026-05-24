@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace DeviceEventIngestionService\Ui\Http\Controllers\Api\V1;
 
-use DeviceEventIngestionService\Infrastructure\Queue\Jobs\IngestDeviceEventJob;
 use DeviceEventIngestionService\Ui\Http\Requests\IngestDeviceEventRequest;
+use DeviceEventIngestionService\Ui\Queue\IngestDeviceEventJob;
 use Illuminate\Http\Response;
-use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Log;
 
-class DeviceEventIngestionController extends Controller
+class DeviceEventIngestionController
 {
     public function __invoke(IngestDeviceEventRequest $request): Response
     {

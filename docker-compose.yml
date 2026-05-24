@@ -39,7 +39,7 @@ services:
     working_dir: /var/www/html
     volumes:
       - .:/var/www/html
-    command: php artisan queue:work redis --tries=3 --backoff=5 --sleep=1
+    command: php artisan queue:work database --tries=3 --backoff=5 --sleep=1
     environment:
       - APP_ENV=local
       - DB_HOST=mysql

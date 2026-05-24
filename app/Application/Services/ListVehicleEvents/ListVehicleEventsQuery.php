@@ -6,7 +6,7 @@ namespace DeviceEventIngestionService\Application\Services\ListVehicleEvents;
 
 use DateTimeImmutable;
 
-final readonly class ListVehicleEventsRequest
+final readonly class ListVehicleEventsQuery
 {
     public function __construct(
         public string $vehicleExternalId,
@@ -15,6 +15,7 @@ final readonly class ListVehicleEventsRequest
         public ?DateTimeImmutable $to = null,
         public ?bool $hasMedia = null,
         public int $limit = 100,
+        public int $page = 1,
     ) {
     }
 }

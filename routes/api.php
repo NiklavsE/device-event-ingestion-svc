@@ -7,7 +7,7 @@ use DeviceEventIngestionService\Ui\Http\Controllers\Api\V1\VehicleEventsControll
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
-    Route::middleware(['api.key', 'throttle:ingestion'])
+    Route::middleware(['api.key', 'ingestion.throttle'])
         ->post('/device-events', DeviceEventIngestionController::class)
         ->name('api.v1.device-events.ingest');
 

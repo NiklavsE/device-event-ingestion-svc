@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Domain\Event\ValueObject;
 
 use DeviceEventIngestionService\Domain\DeviceEvent\Exception\InvalidValueObjectException;
-use DeviceEventIngestionService\Domain\DeviceEvent\ValueObject\VehicleId;
+use DeviceEventIngestionService\Domain\Vehicle\VehicleId;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 

@@ -13,7 +13,6 @@ use DeviceEventIngestionService\Infrastructure\Model\Event\EloquentDeviceEventRe
 use DeviceEventIngestionService\Infrastructure\Validation\LaravelIncomingEventPayloadValidator;
 use Illuminate\Contracts\Cache\Factory as CacheFactory;
 use Illuminate\Support\ServiceProvider;
-use Psr\SimpleCache\CacheInterface;
 
 class DomainServiceProvider extends ServiceProvider
 {
@@ -22,17 +21,12 @@ class DomainServiceProvider extends ServiceProvider
         $this->app->singleton(DeviceRepositoryInterface::class, EloquentDeviceRepository::class);
         $this->app->singleton(IncomingEventPayloadValidator::class, LaravelIncomingEventPayloadValidator::class);
 
-        $this->app->bind(
-            CacheInterface::class,
-            fn ($app) => $app->make(CacheFactory::class)->store(),
-        );
-
         $this->app->singleton(DeviceEventRepositoryInterface::class, function ($app) {
             $config = (array) $app['config']->get('ingestion.dedup', []);
 
             return new CachingDeviceEventRepository(
                 $app->make(EloquentDeviceEventRepository::class),
-                $app->make(CacheInterface::class),
+                $app->make(CacheFactory::class)->store(),
                 (int) ($config['ttl_seconds'] ?? 86400),
                 (string) ($config['key_prefix'] ?? 'dedup:event:'),
             );

@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace DeviceEventIngestionService\Ui\Http\Requests;
 
-use DeviceEventIngestionService\Application\Services\ListVehicleEvents\ListVehicleEventsRequest as ListVehicleEventsQuery;
+use DeviceEventIngestionService\Application\Services\ListVehicleEvents\ListVehicleEventsQuery;
 use DateTimeImmutable;
+use DateTimeZone;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ListVehicleEventsRequest extends FormRequest
@@ -22,10 +23,11 @@ class ListVehicleEventsRequest extends FormRequest
 
         return [
             'event_type' => ['nullable', 'string', 'max:64'],
-            'from'       => ['nullable', 'date'],
-            'to'         => ['nullable', 'date', 'after_or_equal:from'],
+            'from'       => ['nullable', 'date_format:Y-m-d'],
+            'to'         => ['nullable', 'date_format:Y-m-d', 'after_or_equal:from'],
             'has_media'  => ['nullable', 'boolean'],
             'limit'      => ['nullable', 'integer', 'min:1', "max:{$maxLimit}"],
+            'page'       => ['nullable', 'integer', 'min:1'],
         ];
     }
 
@@ -37,36 +39,28 @@ class ListVehicleEventsRequest extends FormRequest
         return new ListVehicleEventsQuery(
             $vehicleId,
             $this->filled('event_type') ? $this->string('event_type')->toString() : null,
-            $this->parseFrom($this->input('from')),
-            $this->parseTo($this->input('to')),
+            $this->parseDate($this->input('from'), endOfDay: false),
+            $this->parseDate($this->input('to'), endOfDay: true),
             $this->has('has_media') ? $this->boolean('has_media') : null,
             min((int) ($this->input('limit', $defaultLimit)), $maxLimit),
+            max(1, (int) $this->input('page', 1)),
         );
     }
 
-    private function parseFrom(mixed $value): ?DateTimeImmutable
-    {
-        if (false === is_string($value) || $value === '') {
-            return null;
-        }
-
-        return new DateTimeImmutable($value);
-    }
-
     /**
-     * If `to` is a bare date (no time component), bump it to end-of-day so
-     * the filter is inclusive of that day. `to=2026-05-31` should match
-     * events at `2026-05-31T23:59:59Z`, not just the stroke of midnight.
+     * Parses a Y-m-d query param as a UTC instant — midnight for `from`,
+     * end-of-day for `to` so the filter is inclusive of that day. Validated
+     * upstream by `date_format:Y-m-d`, so any non-conforming value never
+     * reaches this method.
      */
-    private function parseTo(mixed $value): ?DateTimeImmutable
+    private function parseDate(mixed $value, bool $endOfDay): ?DateTimeImmutable
     {
         if (false === is_string($value) || $value === '') {
             return null;
         }
 
-        $hasTimeComponent = preg_match('/[Tt]|\s\d{1,2}:/', $value) === 1;
-        $dt               = new DateTimeImmutable($value);
+        $dt = new DateTimeImmutable($value, new DateTimeZone('UTC'));
 
-        return $hasTimeComponent ? $dt : $dt->setTime(23, 59, 59);
+        return $endOfDay ? $dt->setTime(23, 59, 59) : $dt;
     }
 }

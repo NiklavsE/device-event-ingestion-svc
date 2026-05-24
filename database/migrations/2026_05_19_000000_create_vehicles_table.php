@@ -10,8 +10,7 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('vehicles', function (Blueprint $table) {
-            $table->bigIncrements('id');
-            $table->string('external_id', 64)->unique();
+            $table->string('external_id', 64)->primary();
             $table->string('label', 128)->nullable();
             $table->timestamps();
         });

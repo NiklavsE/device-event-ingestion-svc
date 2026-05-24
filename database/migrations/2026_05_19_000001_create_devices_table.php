@@ -17,11 +17,13 @@ return new class extends Migration {
             // when recording events — payloads claiming a different
             // vehicle are rejected with VehicleMismatchException.
             $table->string('vehicle_external_id', 64);
-            $table->string('firmware', 64)->nullable();
             $table->timestamp('last_seen_at')->nullable();
             $table->timestamps();
 
             $table->index('vehicle_external_id', 'idx_devices_vehicle');
+            $table->foreign('vehicle_external_id')
+                ->references('external_id')->on('vehicles')
+                ->restrictOnDelete();
         });
     }
 

@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace DeviceEventIngestionService\Domain\Device\Interface;
 
 use DeviceEventIngestionService\Domain\Device\Device;
-use DeviceEventIngestionService\Domain\DeviceEvent\ValueObject\DeviceImei;
+use DeviceEventIngestionService\Domain\Device\Exception\DeviceNotFoundException;
+use DeviceEventIngestionService\Domain\Device\ValueObject\DeviceImei;
 
 interface DeviceRepositoryInterface
 {
     /**
-     * @thorws DeviceNotFoundException
+     * @throws DeviceNotFoundException
      */
     public function ofImei(DeviceImei $imei): Device;
 

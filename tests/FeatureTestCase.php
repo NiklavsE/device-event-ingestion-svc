@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use Database\Factories\DeviceFactory;
+use Database\Factories\VehicleFactory;
 use DeviceEventIngestionService\Infrastructure\Model\Device\EloquentDeviceModel;
 use DeviceEventIngestionService\Infrastructure\Model\Vehicle\EloquentVehicleModel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -13,11 +15,6 @@ abstract class FeatureTestCase extends TestCase
 {
     use RefreshDatabase;
 
-    /**
-     * The default IMEI / vehicle id used across the fixture payloads. Tests
-     * that exercise the not-found paths should NOT call givenDevice() and
-     * instead post payloads using a different identifier.
-     */
     protected const DEFAULT_IMEI       = '863725041234567';
     protected const DEFAULT_VEHICLE_ID = 'LV-1234';
 
@@ -39,38 +36,35 @@ abstract class FeatureTestCase extends TestCase
         Cache::flush();
     }
 
-    /**
-     * Register a vehicle. Mirrors the out-of-band onboarding flow that
-     * precedes any device commissioning.
-     */
-    protected function givenVehicle(
+    protected function createVehicle(
         string $externalId = self::DEFAULT_VEHICLE_ID,
         ?string $label = null,
     ): EloquentVehicleModel {
-        return EloquentVehicleModel::query()->updateOrCreate(
-            ['external_id' => $externalId],
-            ['label'       => $label],
-        );
+        $existing = EloquentVehicleModel::query()->where('external_id', $externalId)->first();
+        if ($existing !== null) {
+            return $existing;
+        }
+
+        return VehicleFactory::new()
+            ->state(['external_id' => $externalId, 'label' => $label])
+            ->create();
     }
 
-    /**
-     * Commission a device for the given IMEI installed on the given vehicle.
-     * The vehicle is auto-registered if missing — the FK between the two is
-     * enforced at the application layer, not the DB level, so tests that
-     * exercise the device path don't need to spell out the vehicle each time.
-     * Tests that want to exercise the "unregistered vehicle" path should
-     * skip this helper.
-     */
-    protected function givenDevice(
+    protected function createDevice(
         string $imei = self::DEFAULT_IMEI,
         string $vehicleExternalId = self::DEFAULT_VEHICLE_ID,
     ): EloquentDeviceModel {
-        $this->givenVehicle($vehicleExternalId);
+        $this->createVehicle($vehicleExternalId);
 
-        return EloquentDeviceModel::query()->firstOrCreate(
-            ['imei'                => $imei],
-            ['vehicle_external_id' => $vehicleExternalId],
-        );
+        $existing = EloquentDeviceModel::query()->where('imei', $imei)->first();
+        if ($existing !== null) {
+            return $existing;
+        }
+
+        return DeviceFactory::new()
+            ->forVehicle($vehicleExternalId)
+            ->state(['imei' => $imei])
+            ->create();
     }
 
     /**

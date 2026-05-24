@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace DeviceEventIngestionService\Application\Services\ListVehicleEvents;
 
-use DeviceEventIngestionService\Domain\DeviceEvent\DeviceEvent;
 use DeviceEventIngestionService\Domain\DeviceEvent\Interface\DeviceEventRepositoryInterface;
+use DeviceEventIngestionService\Domain\DeviceEvent\Queries\EventPage;
 use DeviceEventIngestionService\Domain\DeviceEvent\Queries\VehicleEventQuery;
 use DeviceEventIngestionService\Domain\DeviceEvent\ValueObject\EventType;
-use DeviceEventIngestionService\Domain\DeviceEvent\ValueObject\VehicleId;
+use DeviceEventIngestionService\Domain\Vehicle\VehicleId;
 
 final readonly class ListVehicleEventsService
 {
@@ -17,17 +17,17 @@ final readonly class ListVehicleEventsService
     ) {
     }
 
-    /** @return array<int, DeviceEvent> */
-    public function execute(ListVehicleEventsRequest $request): array
+    public function execute(ListVehicleEventsQuery $query): EventPage
     {
         return $this->events->ofVehicleQuery(
             new VehicleEventQuery(
-                VehicleId::fromString($request->vehicleExternalId),
-                $request->eventType === null ? null : EventType::fromString($request->eventType),
-                $request->from,
-                $request->to,
-                $request->hasMedia,
-                $request->limit,
+                VehicleId::fromString($query->vehicleExternalId),
+                $query->eventType === null ? null : EventType::fromString($query->eventType),
+                $query->from,
+                $query->to,
+                $query->hasMedia,
+                $query->limit,
+                $query->page,
             )
         );
     }

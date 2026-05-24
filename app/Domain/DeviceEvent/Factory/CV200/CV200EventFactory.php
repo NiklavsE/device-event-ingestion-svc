@@ -4,25 +4,25 @@ declare(strict_types=1);
 
 namespace DeviceEventIngestionService\Domain\DeviceEvent\Factory\CV200;
 
+use DeviceEventIngestionService\Domain\Device\ValueObject\DeviceImei;
 use DeviceEventIngestionService\Domain\DeviceEvent\Exception\InvalidPayloadException;
 use DeviceEventIngestionService\Domain\DeviceEvent\Exception\InvalidValueObjectException;
 use DeviceEventIngestionService\Domain\DeviceEvent\Factory\IncomingEventFactoryInterface;
 use DeviceEventIngestionService\Domain\DeviceEvent\IncomingEvent;
 use DeviceEventIngestionService\Domain\DeviceEvent\Interface\IncomingEventPayloadValidator;
 use DeviceEventIngestionService\Domain\DeviceEvent\ValueObject\DedupHash;
-use DeviceEventIngestionService\Domain\DeviceEvent\ValueObject\DeviceImei;
 use DeviceEventIngestionService\Domain\DeviceEvent\ValueObject\EventTimestamp;
 use DeviceEventIngestionService\Domain\DeviceEvent\ValueObject\EventType;
 use DeviceEventIngestionService\Domain\DeviceEvent\ValueObject\GeoPoint;
 use DeviceEventIngestionService\Domain\DeviceEvent\ValueObject\Media;
-use DeviceEventIngestionService\Domain\DeviceEvent\ValueObject\VehicleId;
+use DeviceEventIngestionService\Domain\Vehicle\VehicleId;
 
 final readonly class CV200EventFactory implements IncomingEventFactoryInterface
 {
     public const string PROTOCOL = 'CV200';
 
     /** @var array<string, string> */
-    private const RULES = [
+    private const array RULES = [
         'device_imei'             => 'required|string|max:32',
         'vehicle_id'              => 'required|string|max:64',
         'event_id'                => 'required|string|max:128',

@@ -6,6 +6,7 @@ namespace DeviceEventIngestionService\Domain\DeviceEvent\Interface;
 
 use DeviceEventIngestionService\Domain\DeviceEvent\DeviceEvent;
 use DeviceEventIngestionService\Domain\DeviceEvent\Exception\DeviceEventAlreadyExists;
+use DeviceEventIngestionService\Domain\DeviceEvent\Queries\EventPage;
 use DeviceEventIngestionService\Domain\DeviceEvent\Queries\VehicleEventQuery;
 
 interface DeviceEventRepositoryInterface
@@ -15,8 +16,5 @@ interface DeviceEventRepositoryInterface
      */
     public function save(DeviceEvent $event): void;
 
-    /**
-     * @return array<int, DeviceEvent>
-     */
-    public function ofVehicleQuery(VehicleEventQuery $criteria): array;
+    public function ofVehicleQuery(VehicleEventQuery $criteria): EventPage;
 }

@@ -1,0 +1,285 @@
+openapi: 3.0.3
+info:
+  title: Device Event Ingestion Service
+  description: |
+    Ingests telematics/video events from multiple device protocols (CV200, Howen, ...),
+    normalizes them into a unified internal structure, persists them in MySQL, and
+    exposes a query API.
+
+    Authentication: send the configured API key in the `X-Api-Key` header (or as
+    a `Bearer` token in `Authorization`). Auth is bypassed when `INGESTION_API_KEY`
+    is unset (local dev only).
+  version: 1.0.0
+  contact:
+    name: Mapon technical assignment
+servers:
+  - url: http://localhost:8000
+    description: Local dev
+security:
+  - ApiKeyHeader: []
+  - BearerToken: []
+paths:
+  /api/v1/device-events:
+    post:
+      summary: Ingest a device event
+      description: |
+        Validates the top-level shape of the payload, enqueues the event for
+        async processing, and acknowledges. Normalization, deduplication,
+        device-aggregate validation, and persistence all happen in a worker.
+
+        The referenced device (by IMEI) and vehicle (by plate / external id)
+        MUST be pre-registered with the service; this endpoint does not
+        create them implicitly. Domain failures (unknown device, vehicle
+        mismatch, malformed protocol-specific shape) surface as **failed
+        jobs** in the queue — not as HTTP errors. The originating HTTP
+        request has already been 202-ack'd by the time the worker runs.
+
+        The endpoint is body-less by design — devices are write-only producers
+        and the response carries no per-event detail.
+
+        - **202 Accepted** — request accepted and queued. Empty body. Most
+          common response.
+        - **422 Unprocessable Entity** — request payload was rejected before
+          enqueue (the only validation is the top-level `protocol` field
+          being required and supported).
+        - **401 Unauthorized** — missing or wrong API key.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/CV200Payload'
+                - $ref: '#/components/schemas/HowenPayload'
+              discriminator:
+                propertyName: protocol
+            examples:
+              cv200:
+                $ref: '#/components/examples/CV200Example'
+              howen:
+                $ref: '#/components/examples/HowenExample'
+      responses:
+        '202':
+          description: Request accepted and queued for asynchronous processing. Empty body.
+        '401':
+          description: Unauthorized
+        '422':
+          description: Top-level validation error (e.g. missing or unsupported protocol).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+
+  /api/v1/vehicles/{vehicleId}/events:
+    get:
+      summary: List events for a vehicle
+      parameters:
+        - in: path
+          name: vehicleId
+          required: true
+          schema: { type: string }
+          example: 'LV-1234'
+          description: |
+            External vehicle id (plate or fleet code). The endpoint does
+            **not** distinguish between "no events for this vehicle yet"
+            and "this vehicle does not exist" — both return `200` with
+            `data: []`. This is intentional: the vehicle aggregate is owned
+            by a separate fleet-management service, and a per-request
+            existence check here would force this service to take a
+            dependency on that one.
+        - in: query
+          name: event_type
+          schema: { type: string }
+          example: 'harsh_braking'
+        - in: query
+          name: from
+          schema: { type: string, format: date }
+          description: |
+            Inclusive lower bound, YYYY-MM-DD only. Interpreted as
+            00:00:00 UTC on the given day.
+          example: '2026-05-01'
+        - in: query
+          name: to
+          schema: { type: string, format: date }
+          description: |
+            Inclusive upper bound, YYYY-MM-DD only. Interpreted as
+            23:59:59 UTC on the given day.
+          example: '2026-05-31'
+        - in: query
+          name: has_media
+          schema: { type: boolean }
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 500, default: 100 }
+          description: Page size.
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1, default: 1 }
+          description: 1-indexed page number. See `meta.last_page` in the response for the upper bound.
+      responses:
+        '200':
+          description: A list of matching events ordered by event_timestamp descending
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventListResponse'
+        '401':
+          description: Unauthorized
+        '422':
+          description: Invalid filter parameters
+
+components:
+  securitySchemes:
+    ApiKeyHeader:
+      type: apiKey
+      in: header
+      name: X-Api-Key
+    BearerToken:
+      type: http
+      scheme: bearer
+  schemas:
+    CV200Payload:
+      type: object
+      required: [protocol, device_imei, vehicle_id, event_id, event_type, timestamp, gps]
+      properties:
+        protocol: { type: string, enum: [CV200] }
+        device_imei: { type: string, example: '863725041234567' }
+        vehicle_id: { type: string, example: 'LV-1234' }
+        event_id: { type: string, example: 'evt_20260512_00001' }
+        event_type: { type: string, example: 'harsh_braking' }
+        timestamp: { type: string, format: date-time, example: '2026-05-12T10:15:30Z' }
+        gps:
+          type: object
+          required: [lat, lng]
+          properties:
+            lat: { type: number, format: float }
+            lng: { type: number, format: float }
+            speed: { type: number }
+            heading: { type: integer }
+        camera:
+          type: object
+          nullable: true
+          properties:
+            channel: { type: integer }
+            media_type: { type: string }
+            file_name: { type: string }
+            duration_seconds: { type: integer }
+            codec: { type: string }
+        meta:
+          type: object
+          additionalProperties: true
+    HowenPayload:
+      type: object
+      required: [protocol, imei, plate, alarmCode, alarmTime, location]
+      properties:
+        protocol: { type: string, enum: [HOWEN] }
+        imei: { type: string }
+        plate: { type: string }
+        alarmCode: { type: string, example: 'HB' }
+        alarmTime: { type: integer, description: 'Unix epoch seconds' }
+        location:
+          type: object
+          required: [latitude, longitude]
+          properties:
+            latitude: { type: number }
+            longitude: { type: number }
+            speedKmh: { type: number }
+        video:
+          type: object
+          nullable: true
+          properties:
+            ch: { type: integer }
+            name: { type: string }
+            len: { type: integer }
+            format: { type: string }
+    NormalizedEvent:
+      type: object
+      properties:
+        id: { type: integer }
+        protocol: { type: string, enum: [CV200, HOWEN] }
+        device_imei: { type: string }
+        vehicle_id: { type: string }
+        event_type: { type: string }
+        event_timestamp: { type: string, format: date-time }
+        latitude: { type: number }
+        longitude: { type: number }
+        speed: { type: number, nullable: true }
+        heading: { type: integer, nullable: true }
+        media:
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/Media'
+    Media:
+      type: object
+      properties:
+        channel: { type: integer, nullable: true }
+        file_name: { type: string }
+        duration_seconds: { type: integer, nullable: true }
+        codec: { type: string, nullable: true }
+        media_type: { type: string, nullable: true }
+    EventListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/NormalizedEvent'
+        links:
+          type: object
+          properties:
+            first: { type: string, nullable: true }
+            last:  { type: string, nullable: true }
+            prev:  { type: string, nullable: true }
+            next:  { type: string, nullable: true }
+        meta:
+          type: object
+          properties:
+            vehicle_id:   { type: string }
+            current_page: { type: integer }
+            last_page:    { type: integer }
+            per_page:     { type: integer }
+            total:        { type: integer }
+            from:         { type: integer, nullable: true }
+            to:           { type: integer, nullable: true }
+            path:         { type: string }
+    ValidationError:
+      type: object
+      description: |
+        Returned when Laravel's FormRequest rules reject the payload before
+        enqueue — e.g. missing `protocol` field, or a protocol value not
+        registered with the service.
+      properties:
+        message: { type: string }
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items: { type: string }
+  examples:
+    CV200Example:
+      summary: A CV200 harsh-braking event with camera footage
+      value:
+        protocol: CV200
+        device_imei: '863725041234567'
+        vehicle_id: 'LV-1234'
+        event_id: 'evt_20260512_00001'
+        event_type: harsh_braking
+        timestamp: '2026-05-12T10:15:30Z'
+        gps: { lat: 56.9496, lng: 24.1052, speed: 74, heading: 182 }
+        camera:
+          channel: 2
+          media_type: video
+          file_name: 20260512_101530_CH2.mp4
+          duration_seconds: 18
+          codec: h264
+        meta: { ignition: true, driver_id: 'D-10045', firmware: '1.4.22' }
+    HowenExample:
+      summary: An equivalent Howen alarm payload
+      value:
+        protocol: HOWEN
+        imei: '863725041234567'
+        plate: 'LV-1234'
+        alarmCode: HB
+        alarmTime: 1778580930
+        location: { latitude: 56.9496, longitude: 24.1052, speedKmh: 74 }
+        video: { ch: 2, name: 20260512_101530_CH2.mp4, len: 18, format: h264 }
