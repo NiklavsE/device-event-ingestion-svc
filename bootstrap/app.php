@@ -27,14 +27,5 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        // No HTTP-time domain exception mapping. The controller validates
-        // the top-level FormRequest, dispatches IngestDeviceEventJob, and
-        // returns 202 unconditionally — every domain exception
-        // (DeviceNotFoundException, VehicleMismatchException,
-        // InvalidPayloadException, ...) fires inside the queue worker,
-        // where Laravel's queue machinery records the failure in
-        // `failed_jobs` after retries are exhausted. The empty callback
-        // is still required so the framework binds its default
-        // ExceptionHandler during bootstrap.
     })
     ->create();

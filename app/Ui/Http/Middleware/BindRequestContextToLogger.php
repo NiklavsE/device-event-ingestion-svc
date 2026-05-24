@@ -13,10 +13,6 @@ class BindRequestContextToLogger
 {
     public function handle(Request $request, Closure $next): Response
     {
-        // Context::add() — not Log::withContext() — so these fields survive
-        // the queue boundary: Laravel serialises Context into the dispatched
-        // job payload and rehydrates it in the worker, keeping HTTP and
-        // worker telemetry correlated by request_id/protocol/device_imei.
         Context::add([
             'request_id' => $request->attributes->get(AssignRequestId::ATTRIBUTE),
             'method'     => $request->getMethod(),

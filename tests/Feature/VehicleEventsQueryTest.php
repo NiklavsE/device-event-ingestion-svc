@@ -17,17 +17,11 @@ class VehicleEventsQueryTest extends FeatureTestCase
     {
         parent::setUp();
 
-        // Read-side tests: events are seeded directly via DeviceEventFactory,
-        // bypassing the ingestion pipeline. We still need a device row so the
-        // event's device_id FK points somewhere real.
         $this->device = $this->createDevice();
     }
 
     public function testReturnsFullyShapedResponseForASingleEvent(): void
     {
-        // Pins every field that the resource emits so the assertion below
-        // locks down the complete read-side contract: protocol, identifiers,
-        // event metadata, geo, and the media subtree.
         $event = DeviceEventFactory::new()
             ->forDevice($this->device)
             ->state([
@@ -184,11 +178,6 @@ class VehicleEventsQueryTest extends FeatureTestCase
     }
 
     /**
-     * Builds the expected JSON shape for a single event from the seeded
-     * model. The assertion compares this against the resource's actual
-     * output — so any drift in field names, missing fields, or format
-     * transformations (e.g. timestamp formatting) shows up as a diff.
-     *
      * @return array<string, mixed>
      */
     private function expectedEventJson(EloquentDeviceEventModel $event): array

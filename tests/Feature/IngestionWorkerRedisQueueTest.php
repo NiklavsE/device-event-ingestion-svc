@@ -16,8 +16,8 @@ use Tests\PayloadFixtures;
  * Integration test that runs the job through a real Redis-backed queue and
  * a real worker (`queue:work --once`). The suite default stays `sync`; this
  * file opts into `redis` in setUp() so we can observe the production retry
- * machinery — `FailOnException` middleware, `failed_jobs` writes, delayed
- * retry queue placement — that sync mode short-circuits.
+ * `FailOnException` middleware, `failed_jobs` writes, delayed
+ * retry queue placement.
  */
 class IngestionWorkerRedisQueueTest extends FeatureTestCase
 {

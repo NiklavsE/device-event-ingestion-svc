@@ -24,10 +24,6 @@ final readonly class CachingDeviceEventRepository implements DeviceEventReposito
     {
         $key = $this->keyPrefix . $event->dedupHash->value();
 
-        // Atomic set-if-absent — returns false when the key already exists.
-        // Closes the TOCTOU window of a separate has()/set() pair: two
-        // concurrent workers handling the same dedup hash will see exactly
-        // one `true` and one `false` here, so only one reaches the DB.
         if (false === $this->cache->add($key, true, $this->ttlSeconds)) {
             throw new DeviceEventAlreadyExists($event->dedupHash);
         }

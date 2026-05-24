@@ -110,12 +110,6 @@ class IngestionWorkerTest extends FeatureTestCase
         self::assertSame(1, EloquentDeviceEventModel::count());
     }
 
-    /**
-     * Asserts the stored event matches the canonical normalized shape from
-     * the assignment spec. Both CV200 and Howen payloads must produce
-     * identical output here apart from the `protocol` field — that's the
-     * whole point of having a normalization layer.
-     */
     private function assertMatchesNormalizedShape(string $expectedProtocol, EloquentDeviceEventModel $stored): void
     {
         $expected = [

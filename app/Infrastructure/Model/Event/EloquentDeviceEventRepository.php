@@ -41,9 +41,7 @@ final class EloquentDeviceEventRepository implements DeviceEventRepositoryInterf
                 if (false === $this->isUniqueViolation($e)) {
                     throw $e;
                 }
-                // DB UNIQUE(dedup_hash) caught a duplicate — surface as the
-                // domain-level exception so callers handle this branch the
-                // same way regardless of which tier detected the collision.
+
                 throw new DeviceEventAlreadyExists($event->dedupHash);
             }
 
@@ -62,9 +60,6 @@ final class EloquentDeviceEventRepository implements DeviceEventRepositoryInterf
 
     public function ofVehicleQuery(VehicleEventQuery $criteria): array
     {
-        // device_imei is the only column ever read off the devices row, so
-        // we JOIN and alias it as a top-level column instead of eager-loading
-        // the full Eloquent relation just to access one field.
         $rows = EloquentDeviceEventModel::query()
             ->with(['media'])
             ->select(['device_events.*', 'devices.imei as device_imei'])
