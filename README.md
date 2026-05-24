@@ -61,17 +61,16 @@ Assumptions made:
 - IMEI is a 14–17 digit unique per-device numeric string (matches the GSM standard plus check digit).
 - Each event has at most one media file. The schema generalizes to many; the current normalizers only expose one.
 - Devices don't care about processing outcomes; error handling is out of the HTTP contract.
-- A single static API key is used for auth; a real credential provider can be plugged in later.
 - Howen alarm codes can grow beyond the few listed in the assignment.
 - Vehicle plate number is unique and used as the PK of the `vehicles` table.
 
 Trade-offs made:
 - DDD layout: overkill for two protocols, but makes "where do I put protocol #3?" obvious.
-- Howen alarm codes live in an in-process map (`HowenAlarmCodeMap`); unknown codes pass through prefixed with `howen_`.
-- Auth assumes a single static API key.
+- A single static API key is used for auth; a real credential provider can be plugged in later.
 - Rate limiting reaches into the request body for `imei`/`device_imei`, so new protocols may need their IMEI field plumbed in.
+- Database was used for queue backend. While redis-based one was evaluated, database approach was selected as the "good enough" approach for the task
 - Device event filtering (`from`/`to`) accepts `YYYY-MM-DD` only, interpreted as UTC, with both bounds inclusive.
-- Domain layer model handling is a bit awkward (e.g. created vs persisted DeviceEvent entity), but further
+- Domain layer model handling is a bit awkward (e.g. created vs persisted DeviceEvent entity), but further effort was skipped to not over-engineer the solution too much.
 
 ## Architecture overview
 
