@@ -68,7 +68,7 @@ Trade-offs made:
 - DDD layout: overkill for two protocols, but makes "where do I put protocol #3?" obvious. Service fights against Laravel which causes friction.
 - A single static API key is used for auth; a real credential provider can be plugged in later.
 - Rate limiting reaches into the request body for `imei`/`device_imei`, so new protocols may need their IMEI field plumbed in.
-- Database was used for queue backend. While redis-based one was evaluated, database approach was selected as the "good enough" approach for the task
+- Database was used for queue backend. While redis-based one was evaluated, database approach was selected as the "good enough" approach for the task.
 - Device event filtering (`from`/`to`) accepts `YYYY-MM-DD` only, interpreted as UTC, with both bounds inclusive.
 - Domain layer model handling is a bit awkward (e.g. created vs persisted DeviceEvent entity), but further effort was skipped to not over-engineer the solution too much.
 
@@ -182,7 +182,7 @@ Things to consider before production, given the current assignment's requirement
 - **App layer.** Stateless PHP containers behind a load balancer (`php-fpm` + nginx); Octane for persistent workers and 5–10x request throughput.
 - **Ingestion volume.** The HTTP path is async, so the bottleneck is worker concurrency × MySQL write throughput. Levers:
   1. Scale workers horizontally
-  2. Batch inserts — group N events per transaction.
+  2. Batch inserts - group N events per transaction.
   3. Partition the queue by IMEI hash so a hot device doesn't starve others.
 - **MySQL.** Partition `device_events` by timestamps (e.g. monthly) for cheap `DROP PARTITION` retention and smaller per-partition indexes. Read replica for the query API.
 - **Observability.** Request-id middleware already tags every log line. Adding telemetry and dashboards for ingestion lag / dedup hit ratio / per-protocol error rates.
