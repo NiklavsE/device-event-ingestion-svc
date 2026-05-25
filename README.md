@@ -76,6 +76,42 @@ Trade-offs made:
 
 Layered DDD-flavored layout. The aim is clean seams for adding a protocol or swapping infrastructure, not full DDD machinery.
 
+### Codebase layout
+
+Everything under `app/` is namespaced `DeviceEventIngestionService\` (mapped in `composer.json`). Four layers, with a strict outside-in dependency rule: `Ui` → `Application` → `Domain` ← `Infrastructure`. The Domain layer never imports framework code.
+
+```
+app/
+├── Domain/              ← pure PHP, no Laravel imports
+│   ├── Device/          ← Device aggregate + DeviceImei VO + repo interface
+│   ├── DeviceEvent/     ← IncomingEvent, DeviceEvent, factories, repo interface,
+│   │   ├── Factory/         ← one folder per protocol (CV200/, Howen/)
+│   │   ├── Queries/         ← VehicleEventQuery (read-side criteria)
+│   │   ├── ValueObject/     ← DedupHash, EventTimestamp, EventType, GeoPoint, Media
+│   │   └── Exception/       ← InvalidPayloadException, DeviceEventAlreadyExists, …
+│   └── Vehicle/         ← VehicleId VO
+│
+├── Application/         ← use cases; pure orchestration
+│   └── Services/
+│       ├── DeviceEventIngestion/   ← write side: Service + Command DTO
+│       └── ListVehicleEvents/      ← read side:  Service + Query DTO
+│
+├── Infrastructure/      ← Eloquent + framework adapters
+│   ├── Model/Device/        ← EloquentDeviceModel + repository implementation
+│   ├── Model/Event/         ← EloquentDeviceEventModel + repository + Caching decorator
+│   ├── Model/Vehicle/       ← EloquentVehicleModel (label registry)
+│   └── Validation/          ← Laravel adapter for the IncomingEventPayloadValidator port
+│
+├── Providers/           ← container bindings, one provider per concern
+└── Ui/                  ← entry points
+    ├── Http/
+    │   ├── Controllers/Api/V1/  ← thin __invoke controllers
+    │   ├── Middleware/          ← ApiKeyAuth, AssignRequestId, BindRequestContextToLogger
+    │   ├── Requests/            ← FormRequests (top-level shape only)
+    │   └── Resources/           ← DeviceEventResource (JSON serialisation)
+    └── Queue/                   ← IngestDeviceEventJob
+```
+
 ### Event ingestion request flow (async-only)
 
 The HTTP layer only validates the top-level `protocol`, dispatches the job, and returns **202 Accepted**. Normalisation, domain validation, and DB writes happen in the worker. Domain failures land in `failed_jobs`.
